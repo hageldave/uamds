@@ -1,2 +1,2 @@
-# uamds
+# UAMDS
 Uncertainty-Aware Multidimensional Scaling
