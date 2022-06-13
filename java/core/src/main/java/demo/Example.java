@@ -1,7 +1,14 @@
-package uamds;
+package demo;
+
+import java.awt.Color;
+import java.util.ArrayList;
 
 import hageldave.optisled.ejml.MatCalcEJML;
 import hageldave.optisled.generic.numerics.MatCalc;
+import uamds.NRV;
+import uamds.RVPointSet;
+import uamds.Ref;
+import uamds.UAMDS;
 
 public class Example {
 
@@ -19,7 +26,7 @@ public class Example {
 		int numInstances = 5;
 		/* we are generating a number of random Gaussians for demonstration */
 		for(int i=0; i<numInstances; i++) {
-			M mean = mc.rand(dimensionality);
+			M mean = mc.scale(mc.rand(dimensionality),10);
 			M cov = NRV.randCov(mc, dimensionality);
 			data.add(new NRV<M>(mc, mean, cov));
 		}
@@ -70,9 +77,22 @@ public class Example {
 				System.out.format("loss between %d and %d : %.3f%n", i,j,pairwiseLoss.get()[i][j]);
 		System.out.println("------------------------------");
 		/* print projected random vectors */
-		for(NRV<?> nrv : projectedData) {
+		for(NRV<M> nrv : projectedData) {
 			System.out.println(nrv);
 		}
+		
+		/* low fidelity visualization */
+		LoFiScatter scatter = new LoFiScatter();
+		scatter.setBackground(Color.white);
+		scatter.display("");
+		/* draw samples from projected distributions */
+		ArrayList<double[][]> sampleSet = new ArrayList<>();
+		for(NRV<M> nrv : projectedData) {
+			M samples = nrv.drawSamples(1000, 0.01);
+			sampleSet.add(mc.toArray2D(samples));
+		}
+		scatter.setPointSets(sampleSet);
+		scatter.setPointOpacity(255/2);
 	}
 	
 }
