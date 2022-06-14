@@ -91,7 +91,7 @@ public class LoFiScatter extends JPanel {
 		}
 	}
 	
-	Rectangle2D getOptimalView() {
+	protected Rectangle2D getOptimalView() {
 		Rectangle2D contentBounds = getContentBounds();
 		double contentAspect = contentBounds.getWidth()/contentBounds.getHeight();
 		double viewpAspect = getWidth()*1.0/getHeight();
