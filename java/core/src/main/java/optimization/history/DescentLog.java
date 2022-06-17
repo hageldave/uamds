@@ -1,4 +1,4 @@
-package hageldave.optisled.history;
+package optimization.history;
 
 public interface DescentLog {
 

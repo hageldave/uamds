@@ -1,7 +1,7 @@
-package hageldave.optisled.generic.numerics;
+package optimization.generic.numerics;
 
-import hageldave.optisled.generic.problem.ScalarFN;
-import hageldave.optisled.generic.problem.VectorFN;
+import optimization.generic.problem.ScalarFN;
+import optimization.generic.problem.VectorFN;
 
 /**
  * Computed gradient using finite differences

@@ -3,8 +3,8 @@ package demo;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import hageldave.optisled.ejml.MatCalcEJML;
-import hageldave.optisled.generic.numerics.MatCalc;
+import optimization.ejml.MatCalcEJML;
+import optimization.generic.numerics.MatCalc;
 import uamds.NRV;
 import uamds.RVPointSet;
 import uamds.Ref;

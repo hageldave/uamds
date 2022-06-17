@@ -16,7 +16,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import hageldave.optisled.generic.numerics.MatCalc;
+import optimization.generic.numerics.MatCalc;
 
 public class Utils {
 

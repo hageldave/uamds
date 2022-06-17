@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import hageldave.optisled.generic.numerics.MatCalc;
-import hageldave.optisled.generic.problem.ScalarFN;
-import hageldave.optisled.generic.problem.VectorFN;
-import hageldave.optisled.generic.solver.GradientDescent;
+import optimization.generic.numerics.MatCalc;
+import optimization.generic.problem.ScalarFN;
+import optimization.generic.problem.VectorFN;
+import optimization.generic.solver.GradientDescent;
 
 public class UAMDS<M> {
 	

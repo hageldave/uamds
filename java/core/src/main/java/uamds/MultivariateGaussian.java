@@ -1,6 +1,6 @@
 package uamds;
 
-import hageldave.optisled.generic.numerics.MatCalc;
+import optimization.generic.numerics.MatCalc;
 
 public class MultivariateGaussian<M> {
 

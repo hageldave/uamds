@@ -1,4 +1,4 @@
-package hageldave.optisled.ejml;
+package optimization.ejml;
 
 import java.util.Arrays;
 import java.util.Locale;

@@ -1,6 +1,6 @@
-package hageldave.optisled.generic.problem;
+package optimization.generic.problem;
 
-import hageldave.optisled.generic.numerics.MatCalc;
+import optimization.generic.numerics.MatCalc;
 
 /**
  * Function taking vector input and giving vector output.

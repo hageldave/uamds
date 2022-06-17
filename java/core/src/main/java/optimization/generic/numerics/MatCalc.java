@@ -1,4 +1,4 @@
-package hageldave.optisled.generic.numerics;
+package optimization.generic.numerics;
 
 import java.util.Arrays;
 import java.util.Random;

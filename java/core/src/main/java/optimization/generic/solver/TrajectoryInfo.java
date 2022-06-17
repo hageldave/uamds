@@ -1,4 +1,4 @@
-package hageldave.optisled.generic.solver;
+package optimization.generic.solver;
 
 public class TrajectoryInfo implements Cloneable {
 	public double[] x;

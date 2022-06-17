@@ -2,7 +2,7 @@ package uamds;
 
 import java.io.Serializable;
 
-import hageldave.optisled.generic.numerics.MatCalc;
+import optimization.generic.numerics.MatCalc;
 
 /**
  * Normally distributed random vector

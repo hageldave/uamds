@@ -1,9 +1,9 @@
-package hageldave.optisled.generic.solver;
+package optimization.generic.solver;
 
-import hageldave.optisled.generic.numerics.MatCalc;
-import hageldave.optisled.generic.problem.ScalarFN;
-import hageldave.optisled.generic.problem.VectorFN;
-import hageldave.optisled.history.DescentLog;
+import optimization.generic.numerics.MatCalc;
+import optimization.generic.problem.ScalarFN;
+import optimization.generic.problem.VectorFN;
+import optimization.history.DescentLog;
 
 /**
  * Gradient descent instance with hyper parameter configuration.

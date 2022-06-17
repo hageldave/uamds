@@ -3,7 +3,7 @@ package datasets;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import hageldave.optisled.generic.numerics.MatCalc;
+import optimization.generic.numerics.MatCalc;
 import uamds.NRV;
 
 import static uamds.Utils.sq;

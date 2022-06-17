@@ -1,4 +1,4 @@
-package hageldave.optisled.ejml;
+package optimization.ejml;
 
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
@@ -9,7 +9,7 @@ import org.ejml.simple.SimpleMatrix;
 import org.ejml.simple.SimpleSVD;
 import org.ejml.simple.ops.SimpleOperations_DDRM;
 
-import hageldave.optisled.generic.numerics.MatCalc;
+import optimization.generic.numerics.MatCalc;
 
 /**
  * {@link MatCalc} implementation using {@link DMatrixRMaj} matrix type of
