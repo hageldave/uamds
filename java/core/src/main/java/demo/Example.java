@@ -70,7 +70,7 @@ public class Example {
 					data, 
 					init, 
 					result,
-					50, // number of descend steps 
+					100, // number of descend steps 
 					pairwiseLoss);
 
 			/* report on current loss */
