@@ -3,6 +3,7 @@ package demo;
 import java.awt.Color;
 import java.util.ArrayList;
 
+import datasets.StudentGrades;
 import optimization.ejml.MatCalcEJML;
 import optimization.generic.numerics.MatCalc;
 import uamds.NRV;
@@ -19,8 +20,11 @@ public class Example {
 		executeExample(mc);
 	}
 	
-	public static <M> void executeExample(MatCalc<M> mc) {
-		/* prepare data (consisting of normally distributed random vectors) */
+	public static <M> RVPointSet<M> getData_StudentGrades(MatCalc<M> mc){
+		return RVPointSet.fromArray(StudentGrades.get(mc, 0));
+	}
+	
+	public static <M> RVPointSet<M> getData_RandomizedDistribs(MatCalc<M> mc){
 		RVPointSet<M> data = new RVPointSet<>();
 		int dimensionality = 4;
 		int numInstances = 5;
@@ -30,6 +34,13 @@ public class Example {
 			M cov = NRV.randCov(mc, dimensionality);
 			data.add(new NRV<M>(mc, mean, cov));
 		}
+		return data;
+	}
+	
+	public static <M> void executeExample(MatCalc<M> mc) {
+		/* prepare data */
+		RVPointSet<M> data = getData_StudentGrades(mc);
+		// RVPointSet<M> data = getData_RandomizedDistribs(mc);
 		
 		/* prepare objects for UAMDS */
 		UAMDS<M> uamds = new UAMDS<>(mc);
@@ -46,34 +57,34 @@ public class Example {
 		
 		/* report on current loss */
 		double totalLoss = 0;
-		for(int i=0; i<numInstances; i++)
-			for(int j=i; j<numInstances; j++)
+		for(int i=0; i<data.size(); i++)
+			for(int j=i; j<data.size(); j++)
 				totalLoss += pairwiseLoss.get()[i][j];
 		System.out.format("total loss : %.3f%n", totalLoss);
 		System.out.println("------------------------------");
 		
-		/* perform another 500 iteration of UAMDS (20 x 25 iterations) */
+		/* perform another 2000 iteration of UAMDS (20 x 100 iterations) */
 		for(int k=0; k<20; k++) {
 			init = result.get(); // use previous result as initialization
 			projectedData = uamds.calculateProjection(
 					data, 
 					init, 
 					result,
-					25, // number of descend steps 
+					50, // number of descend steps 
 					pairwiseLoss);
 
 			/* report on current loss */
 			totalLoss = 0;
-			for(int i=0; i<numInstances; i++)
-				for(int j=i; j<numInstances; j++)
+			for(int i=0; i<data.size(); i++)
+				for(int j=i; j<data.size(); j++)
 					totalLoss += pairwiseLoss.get()[i][j];
 			System.out.format("total loss : %.3f%n", totalLoss);
 			System.out.println("------------------------------");
 		}
 		
 		/* report on final pairwise loss */
-		for(int i=0; i<numInstances; i++)
-			for(int j=i; j<numInstances; j++)
+		for(int i=0; i<data.size(); i++)
+			for(int j=i; j<data.size(); j++)
 				System.out.format("loss between %d and %d : %.3f%n", i,j,pairwiseLoss.get()[i][j]);
 		System.out.println("------------------------------");
 		/* print projected random vectors */
