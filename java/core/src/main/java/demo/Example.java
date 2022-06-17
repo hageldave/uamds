@@ -34,7 +34,7 @@ public class Example {
 		/* prepare objects for UAMDS */
 		UAMDS<M> uamds = new UAMDS<>(mc);
 		M[][] init = null;
-		M[][] result = mc.matArray(4, 0);
+		Ref<M[][]> result = new Ref<>();
 		Ref<double[][]> pairwiseLoss = new Ref<>();
 		/* perform 10 iterations of UAMDS */
 		RVPointSet<M> projectedData = uamds.calculateProjection(
@@ -54,7 +54,7 @@ public class Example {
 		
 		/* perform another 500 iteration of UAMDS (20 x 25 iterations) */
 		for(int k=0; k<20; k++) {
-			init = result; // use previous result as initialization
+			init = result.get(); // use previous result as initialization
 			projectedData = uamds.calculateProjection(
 					data, 
 					init, 
@@ -84,7 +84,7 @@ public class Example {
 		/* low fidelity visualization */
 		LoFiScatter scatter = new LoFiScatter();
 		scatter.setBackground(Color.white);
-		scatter.display("");
+		scatter.display("UAMDS demo");
 		/* draw samples from projected distributions */
 		ArrayList<double[][]> sampleSet = new ArrayList<>();
 		for(NRV<M> nrv : projectedData) {

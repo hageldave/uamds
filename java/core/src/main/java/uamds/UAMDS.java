@@ -22,15 +22,48 @@ public class UAMDS<M> {
 		this.mc = mc;
 	}
 	
-	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, M[][] result) {
+	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result) {
 		return calculateProjection(data, init, result, 100);
 	}
 	
-	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, M[][] result, int numDescentSteps) {
+	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps) {
 		return calculateProjection(data, init, result, numDescentSteps, null);
 	}
 	
-	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, M[][] result, int numDescentSteps, Ref<double[][]> loss) {
+	/**
+	 * Performs a number of iterations of UAMDS.
+	 * For each high-dimensional normal distribution N(μ_i, Σ_i) in the data set, its low dimensional
+	 * projection is calculated through an affine transform which UAMDS optimizes for.
+	 * <p><pre>
+	 * N(μ_i, Σ_i) → projection → N(c_i, W_i)
+	 * c_i = P_i * μ_i + t_i   (with projection matrix P_i and translation vector t_i)
+	 * W_i = P_i * Σ_i * P_iT  (T for transpose)
+	 * </pre><p>
+	 * However, the algorithm does not compute P_i and t_i, but instead computes
+	 * c_i directly and a projection matrix B_i that relates to P_i like so:
+	 * <p><pre>
+	 * Σ_i = U_i * S_i * V_iT = U_i * S_i * U_iT  (singular value decomposition of covariance matrix)
+	 * B_i = P_i * U_i  so that  W_i = B_i * S_i * B_iT  and  P_i = B_i * U_iT
+	 * </pre>
+	 * 
+	 * @param data set of NRVs (normal distributions) N(μ_i, Σ_i)
+	 * 
+	 * @param init (optional, can be null) initial guess of the affine transforms B_i,c_i for each NRV of the data set.<br>
+	 * init[0][i]=B[i], init[1][i]=c[i].<br>
+	 * When init=null, random values will be used to initialize.
+	 * 
+	 * @param result (optional, can be null) will hold the optimized affine transfroms 
+	 * B_i,c_i and related P_i,t_i when the method returns.<br>
+	 * result.r[0][i]=B[i], result.r[1][i]=c[i], result.r[2][i]=P[i], result.r[3][i]=t[i].
+	 * 
+	 * @param numDescentSteps maximum number of steps gradient descend will take before returning.
+	 * 
+	 * @param loss (optional, can be null) will hold the pairwise stress between projected NRVs when the method returns.<br>
+	 * loss[i][j]=loss[j][i] = 'stress between distribution i and j in the projection'
+	 * 
+	 * @return projected NRVs (normal distributions) N(c_i, W_i)
+	 */
+	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss) {
 		List<M[]> svds = data.stream().map(nrv->{
 			M[] usv = mc.svd(nrv.cov, true);
 			M s = usv[1];
@@ -143,13 +176,13 @@ public class UAMDS<M> {
 			projections[i] = mc.mult_abT(projectionsDistrSpace[i], svds.get(i)[0]);
 			translations[i] = mc.sub(loMeans[i], mc.mult_ab(projections[i],data.get(i).mean));
 		}
-		if(result != null && result.length >= 2) {
-			result[0] = projectionsDistrSpace;
-			result[1] = loMeans;
-			if(result.length >= 4) {
-				result[2] = projections;
-				result[3] = translations;
-			}
+		if(result != null) {
+			M[][] resultTransforms = mc.matArray(4, 0);
+			resultTransforms[0] = projectionsDistrSpace;
+			resultTransforms[1] = loMeans;
+			resultTransforms[2] = projections;
+			resultTransforms[3] = translations;
+			result.set(resultTransforms);
 		}
 		
 		double[][] loss_ij = new double[data.size()][data.size()];
