@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import hageldave.optisled.generic.numerics.MatCalc;
-import hageldave.optisled.generic.numerics.NumericGradient;
 import hageldave.optisled.generic.problem.ScalarFN;
 import hageldave.optisled.generic.problem.VectorFN;
 import hageldave.optisled.generic.solver.GradientDescent;
@@ -64,27 +63,51 @@ public class UAMDS<M> {
 	 * @return projected NRVs (normal distributions) N(c_i, W_i)
 	 */
 	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss) {
-		List<M[]> svds = data.stream().map(nrv->{
-			M[] usv = mc.svd(nrv.cov, true);
-			M s = usv[1];
-			M s_sqrt = mc.copy(s);
-			mc.sqrt_inp(s_sqrt);
-			usv[2] = s_sqrt;
-			usv[1] = s;
-			/* returns U,S,S^(1/2) */
-			return usv;
-		}).collect(Collectors.toList());
-		List<M> means = data.stream().map(nrv->nrv.mean).collect(Collectors.toList());
-		
-		PreCalculatedValues pre = new PreCalculatedValues(svds, means);
-		
 		int hiDim = data.get(0).d;
 		int loDim = 2;
+		PreCalculatedValues pre = new PreCalculatedValues(data);
 		
-		// init affine transforms
+		M[][] affineTransforms = optimizeUAMDS(loDim, pre, init, numDescentSteps);
+		// solution extraction and projection
+		M[] B = affineTransforms[0];
+		M[] c = affineTransforms[1];
+		M[] projections = mc.matArray(data.size());
+		M[] translations = mc.matArray(data.size());
+		RVPointSet<M> lowPointset = new RVPointSet<>();
+		for(int i=0; i<data.size(); i++) {
+			NRV<M> projected = new NRV<M>(mc, c[i], mc.mult_abcT(B[i], pre.S[i], B[i]));
+			lowPointset.add(projected);
+			projections[i] = mc.mult_abT(B[i], pre.U[i]);
+			translations[i] = mc.sub(c[i], mc.mult_ab(projections[i],pre.mu[i]));
+		}
+		if(result != null) {
+			M[][] resultTransforms = mc.matArray(4, 0);
+			resultTransforms[0] = B;
+			resultTransforms[1] = c;
+			resultTransforms[2] = projections;
+			resultTransforms[3] = translations;
+			result.set(resultTransforms);
+		}
+		
+		double[][] loss_ij = new double[data.size()][data.size()];
+		double stress = stressFromProjecton(pre, B, c, hiDim, loDim, loss_ij);
+		if(loss!=null)
+			loss.set(loss_ij);
+		if(verbose)
+			System.out.println("stress=" + stress);
+	
+		return lowPointset;
+	}
+	
+	
+	protected M[][] optimizeUAMDS(final int loDim, PreCalculatedValues pre, M[][] init, int numDescentSteps) {		
+		final int n = pre.n; // number of distributions
+		final int hiDim = mc.numElem(pre.mu[0]);
+		
+		/* initialize affine transforms */
 		M[] projectionsDistrSpace;
 		M[] loMeans;
-		if(init != null && init.length >= 2 && init[0].length == data.size()) {
+		if(init != null && init.length >= 2 && init[0].length == n) {
 			projectionsDistrSpace = Arrays.stream(init[0])
 					.map(mc::copy)
 					.toArray(mc::matArray);
@@ -97,46 +120,47 @@ public class UAMDS<M> {
 					throw new IllegalArgumentException("somethings not matching up with dimensions of provided init");
 			}
 		} else {
-			projectionsDistrSpace = mc.matArray(data.size());
-			loMeans = mc.matArray(data.size());
+			projectionsDistrSpace = mc.matArray(n);
+			loMeans = mc.matArray(n);
 			for(int i=0;i<projectionsDistrSpace.length; i++) {
 				projectionsDistrSpace[i] = mc.sub(mc.rand(loDim, hiDim),0.5);
 				loMeans[i] = mc.sub(mc.rand(loDim),0.5);
 			}
 		}
 		
-		// problem
+		/* create the optimization problem (loss function for stress minimization).
+		 * This needs objects x, f(x), f'(x)
+		 */
 		M x = vectorizeAffineTransforms(projectionsDistrSpace, loMeans, null);
 		ScalarFN<M> fx = new ScalarFN<M>() {
 			@Override
 			public double evaluate(M vec) {
-				copyFromVectorizedAffineTransform(projectionsDistrSpace, loMeans, vec);
-				return stressFromProjecton(svds, means, pre, projectionsDistrSpace, loMeans, hiDim, loDim, null);
+				extractAffineTransform(projectionsDistrSpace, loMeans, vec);
+				return stressFromProjecton(pre, projectionsDistrSpace, loMeans, hiDim, loDim, null);
 			}
 		};
-		NumericGradient<M> dfxn = new NumericGradient<>(mc, fx);
-		dfxn.h = 1e-9;
 		VectorFN<M> dfxa = new VectorFN<M>() {
-			
-			M[] Bs = mc.matArray(data.size());
-			M[] cs = mc.matArray(data.size());
+			M[] B = mc.matArray(n);
+			M[] c = mc.matArray(n);
 			M grad = mc.copy(x);
 			{ // default constructor
-				for(int i=0; i<Bs.length; i++) {
-					Bs[i] = mc.zeros(loDim, hiDim);
-					cs[i] = mc.zeros(loDim);
+				for(int i=0; i<B.length; i++) {
+					B[i] = mc.zeros(loDim, hiDim);
+					c[i] = mc.zeros(loDim);
 				}
 			}
 			
 			@Override
 			public M evaluate(M vec) {
-				copyFromVectorizedAffineTransform(Bs, cs, vec);
-				M[][] dc_dB = gradientFromProjection(svds, means, pre, Bs, cs, hiDim, loDim);
+				extractAffineTransform(B, c, vec);
+				M[][] dc_dB = gradientFromProjection(pre, B, c, hiDim, loDim);
 				return vectorizeAffineTransforms(dc_dB[1], dc_dB[0], grad);
 			}
 		};
 		
 		/* (only for debugging)
+		NumericGradient<M> dfxn = new NumericGradient<>(mc, fx);
+		dfxn.h = 1e-9;
 		M[] tempBs = Arrays.stream(projectionsDistrSpace).map(mc::copy).toArray(mc::matArray);
 		M[] tempcs = Arrays.stream(loMeans).map(mc::copy).toArray(mc::matArray);
 		VectorFN<M> dfx = (x_)->{ // analytic gradient with on the fly numeric gradient check
@@ -165,35 +189,14 @@ public class UAMDS<M> {
 		if(verbose)
 			System.out.println("stepsize on termination:"+gd.stepSizeOnTermination);
 		
-		// solution extraction and projection
-		copyFromVectorizedAffineTransform(projectionsDistrSpace, loMeans, xMin);
-		RVPointSet<M> lowPointset = new RVPointSet<>();
-		M[] projections = mc.matArray(data.size());
-		M[] translations = mc.matArray(data.size());
-		for(int i=0; i<data.size(); i++) {
-			NRV<M> projected = new NRV<M>(mc, loMeans[i], mc.mult_abcT(projectionsDistrSpace[i], svds.get(i)[1], projectionsDistrSpace[i]));
-			lowPointset.add(projected);
-			projections[i] = mc.mult_abT(projectionsDistrSpace[i], svds.get(i)[0]);
-			translations[i] = mc.sub(loMeans[i], mc.mult_ab(projections[i],data.get(i).mean));
-		}
-		if(result != null) {
-			M[][] resultTransforms = mc.matArray(4, 0);
-			resultTransforms[0] = projectionsDistrSpace;
-			resultTransforms[1] = loMeans;
-			resultTransforms[2] = projections;
-			resultTransforms[3] = translations;
-			result.set(resultTransforms);
-		}
-		
-		double[][] loss_ij = new double[data.size()][data.size()];
-		double stress = stressFromProjecton(svds, means, pre, projectionsDistrSpace, loMeans, hiDim, loDim, loss_ij);
-		if(loss!=null)
-			loss.set(loss_ij);
-		if(verbose)
-			System.out.println("stress=" + stress);
-	
-		return lowPointset;
+		// solution extraction
+		extractAffineTransform(projectionsDistrSpace, loMeans, xMin);		
+		M[][] result = mc.matArray(2, 0);
+		result[0] = projectionsDistrSpace;
+		result[1] = loMeans;
+		return result;
 	}
+	
 	
 	protected M vectorizeAffineTransforms(M[] Bs, M[] cs, M target) {
 		int hiDim = mc.numCols(Bs[0]);
@@ -217,7 +220,7 @@ public class UAMDS<M> {
 		return target;
 	}
 	
-	protected void copyFromVectorizedAffineTransform(M[] Bs, M[] cs, M source) {
+	protected void extractAffineTransform(M[] Bs, M[] cs, M source) {
 		int hiDim = mc.numCols(Bs[0]);
 		int loDim = mc.numRows(Bs[0]);
 		int n = Bs.length;
@@ -237,27 +240,17 @@ public class UAMDS<M> {
 	}
 
 
-	protected double stressFromProjecton(List<M[]> uss, List<M> mus, PreCalculatedValues pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij) {
+	protected double stressFromProjecton(PreCalculatedValues pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij) {
 		double sum = 0;
 		
 		for(int i=0; i<B.length; i++) {
-			M[] uss_i = uss.get(i);
-			/* unused variables (are already part of pre)
-			M mui = mus.get(i);
-			M Ui = uss_i[0];
-			*/
-			M Si = uss_i[1];
-			M Ssqrti = uss_i[2];
+			M Si = pre.S[i];
+			M Ssqrti = pre.Ssqrt[i];
 			M Bi = B[i];
 			M ci = c[i];
 			for(int j=i; j<B.length; j++) {
-				M[] uss_j = uss.get(j);
-				/* unused variables (are already part of pre)
-				M muj = mus.get(j);
-				M Uj = uss_j[0];
-				*/
-				M Sj = uss_j[1];
-				M Ssqrtj = uss_j[2];
+				M Sj = pre.S[j];
+				M Ssqrtj = pre.Ssqrt[j];
 				M Bj = B[j];
 				M cj = c[j];
 				
@@ -331,7 +324,7 @@ public class UAMDS<M> {
 		return sum;
 	}
 	
-	protected M[][] gradientFromProjection(List<M[]> uss, List<M> mus, PreCalculatedValues pre, M[] B, M[] c, int hiDim, int loDim){
+	protected M[][] gradientFromProjection(PreCalculatedValues pre, M[] B, M[] c, int hiDim, int loDim){
 		// variables for derivatives w.r.t. c and B
 		M[] dc = mc.matArray(c.length);
 		M[] dB = mc.matArray(B.length);
@@ -340,18 +333,11 @@ public class UAMDS<M> {
 			dB[i] = mc.zeros(loDim, hiDim);
 		}
 		// precomputing helper variables
-		M[] BS = IntStream.range(0, B.length).mapToObj(i->{
-			M Si = uss.get(i)[1];
-			return mc.mult_ab(B[i],Si);
-		}).toArray(mc::matArray);
+		M[] BS = IntStream.range(0, B.length).mapToObj(i->mc.mult_ab(B[i],pre.S[i])).toArray(mc::matArray);
 		
 		for(int i=0; i<B.length; i++) {
-			M[] uss_i = uss.get(i);
-			M mui = mus.get(i);
-			/* unused variable (is already part of pre)
-			M Ui = uss_i[0];
-			*/
-			M Si = uss_i[1];
+			M mui = pre.mu[i];
+			M Si = pre.S[i];
 			M Bi = B[i];
 			M BiSi = BS[i];
 			M ci = c[i];
@@ -359,12 +345,8 @@ public class UAMDS<M> {
 			M dci = dc[i];
 			
 			for(int j=i; j<B.length; j++) {
-				M[] uss_j = uss.get(j);
-				M muj = mus.get(j);
-				/* unused variable (is already part of pre)
-				M Uj = uss_j[0];
-				*/
-				M Sj = uss_j[1];
+				M muj = pre.mu[j];
+				M Sj = pre.S[j];
 				M Bj = B[j];
 				M BjSj = BS[j];
 				M cj = c[j];
@@ -464,6 +446,11 @@ public class UAMDS<M> {
 	
 	
 	private class PreCalculatedValues {
+		public final int n;
+		public final M[] U;
+		public final M[] S;
+		public final M[] Ssqrt;
+		public final M[] mu;
 		
 		public final M[][] SsqrtiUiTUjSsqrtj;
 		public final M[][] muisubmujTUi;
@@ -474,8 +461,53 @@ public class UAMDS<M> {
 		public final M[][] Zij;
 		
 		
-		public PreCalculatedValues(List<M[]> uss, List<M> mus) {
-			int n=uss.size();
+//		public PreCalculatedValues(List<M[]> uss, List<M> mus) {
+//			int n=uss.size();
+//			this.SsqrtiUiTUjSsqrtj = mc.matArray(n,n);
+//			this.muisubmujTUi = mc.matArray(n,n);
+//			this.muisubmujTUj = mc.matArray(n,n);
+//			this.muisubmujTUi_T = mc.matArray(n,n);
+//			this.muisubmujTUj_T = mc.matArray(n,n);
+//			this.norm2muisubmuj = new double[n][n];
+//			this.Zij = mc.matArray(n,n);
+//			
+//			for(int i=0; i<n; i++) {
+//				M[] uss_i = uss.get(i);
+//				M mui = mus.get(i);
+//				M Ui = uss_i[0];
+//				M Ssqrti = uss_i[2];
+//				for(int j=i; j<n; j++) {
+//					M[] uss_j = uss.get(j);
+//					M muj = mus.get(j);
+//					M Uj = uss_j[0];
+//					M Ssqrtj = uss_j[2];
+//					
+//					{ // precalculation
+//						SsqrtiUiTUjSsqrtj[i][j] = mc.mult_aTb(mc.mult_ab(Ui, Ssqrti), mc.mult_ab(Uj, Ssqrtj));
+//						muisubmujTUi[i][j] = mc.mult_aTb(mc.sub(mui, muj), Ui);
+//						muisubmujTUj[i][j] = mc.mult_aTb(mc.sub(mui, muj), Uj);
+//						muisubmujTUi_T[i][j] = mc.trp(muisubmujTUi[i][j]);
+//						muisubmujTUj_T[i][j] = mc.trp(muisubmujTUj[i][j]);
+//						norm2muisubmuj[i][j] = mc.norm2(mc.sub(mui, muj));
+//						Zij[i][j] = mc.mult_aTb(Ui, Uj);
+//					}
+//				}
+//			}
+//		}
+
+
+		public PreCalculatedValues(RVPointSet<M> data) {
+			this.n=data.size();
+			this.mu = data.stream().map(nrv->nrv.mean).toArray(mc::matArray);
+			List<M[]> svds = data.stream().map(nrv->mc.svd(nrv.cov, true)).collect(Collectors.toList());
+			this.U = mc.matArray(n);
+			this.S = mc.matArray(n);
+			this.Ssqrt = mc.matArray(n);
+			for(int i=0; i<n; i++) {
+				U[i] = svds.get(i)[0];
+				S[i] = svds.get(i)[1];
+				Ssqrt[i] = mc.sqrt_inp(mc.copy(S[i]));
+			}
 			this.SsqrtiUiTUjSsqrtj = mc.matArray(n,n);
 			this.muisubmujTUi = mc.matArray(n,n);
 			this.muisubmujTUj = mc.matArray(n,n);
@@ -485,15 +517,13 @@ public class UAMDS<M> {
 			this.Zij = mc.matArray(n,n);
 			
 			for(int i=0; i<n; i++) {
-				M[] uss_i = uss.get(i);
-				M mui = mus.get(i);
-				M Ui = uss_i[0];
-				M Ssqrti = uss_i[2];
+				M mui = mu[i];
+				M Ui = U[i];
+				M Ssqrti = Ssqrt[i];
 				for(int j=i; j<n; j++) {
-					M[] uss_j = uss.get(j);
-					M muj = mus.get(j);
-					M Uj = uss_j[0];
-					M Ssqrtj = uss_j[2];
+					M muj = mu[j];
+					M Uj = U[j];
+					M Ssqrtj = Ssqrt[j];
 					
 					{ // precalculation
 						SsqrtiUiTUjSsqrtj[i][j] = mc.mult_aTb(mc.mult_ab(Ui, Ssqrti), mc.mult_ab(Uj, Ssqrtj));
