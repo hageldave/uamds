@@ -103,7 +103,7 @@ public class Example {
 			sampleSet.add(mc.toArray2D(samples));
 		}
 		scatter.setPointSets(sampleSet);
-		scatter.setPointOpacity(255/2);
+		scatter.setPointOpacity(255/3);
 	}
 	
 }

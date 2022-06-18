@@ -5,6 +5,13 @@
 	<artifactId>uamds-core</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
+	<url>https://github.com/hageldave/uamds</url>
+	<description>
+		Java implementation of Uncertainty-Aware Multidimensional Scaling (UAMDS).
+		UAMDS is a dimensionality reduction algorithm for sets of multivariate
+		normal distributions. 
+	</description>
+
 	<licenses>
 		<license>
 			<name>The MIT License (MIT)</name>
@@ -37,6 +44,18 @@
 			<version>0.41</version>
 		</dependency>
 	</dependencies>
+	
+	<scm>
+		<url>https://github.com/hageldave/uamds.git</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>hageldave</id>
+			<name>David Hägele</name>
+			<email>haegele.david@gmail.com</email>
+		</developer>
+	</developers>
 
 
 </project>

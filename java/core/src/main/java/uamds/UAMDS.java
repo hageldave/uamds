@@ -65,27 +65,27 @@ public class UAMDS<M> {
 	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss) {
 		int hiDim = data.get(0).d;
 		int loDim = 2;
-		PreCalculatedValues pre = new PreCalculatedValues(data);
+		PreCalculatedValues<M> pre = new PreCalculatedValues<>(mc,data);
 		
 		M[][] affineTransforms = optimizeUAMDS(loDim, pre, init, numDescentSteps);
 		// solution extraction and projection
 		M[] B = affineTransforms[0];
 		M[] c = affineTransforms[1];
-		M[] projections = mc.matArray(data.size());
-		M[] translations = mc.matArray(data.size());
+		M[] P = mc.matArray(data.size());
+		M[] t = mc.matArray(data.size());
 		RVPointSet<M> lowPointset = new RVPointSet<>();
 		for(int i=0; i<data.size(); i++) {
 			NRV<M> projected = new NRV<M>(mc, c[i], mc.mult_abcT(B[i], pre.S[i], B[i]));
 			lowPointset.add(projected);
-			projections[i] = mc.mult_abT(B[i], pre.U[i]);
-			translations[i] = mc.sub(c[i], mc.mult_ab(projections[i],pre.mu[i]));
+			P[i] = mc.mult_abT(B[i], pre.U[i]);
+			t[i] = mc.sub(c[i], mc.mult_ab(P[i],pre.mu[i]));
 		}
 		if(result != null) {
 			M[][] resultTransforms = mc.matArray(4, 0);
 			resultTransforms[0] = B;
 			resultTransforms[1] = c;
-			resultTransforms[2] = projections;
-			resultTransforms[3] = translations;
+			resultTransforms[2] = P;
+			resultTransforms[3] = t;
 			result.set(resultTransforms);
 		}
 		
@@ -100,7 +100,7 @@ public class UAMDS<M> {
 	}
 	
 	
-	protected M[][] optimizeUAMDS(final int loDim, PreCalculatedValues pre, M[][] init, int numDescentSteps) {		
+	protected M[][] optimizeUAMDS(final int loDim, PreCalculatedValues<M> pre, M[][] init, int numDescentSteps) {		
 		final int n = pre.n; // number of distributions
 		final int hiDim = mc.numElem(pre.mu[0]);
 		
@@ -240,7 +240,7 @@ public class UAMDS<M> {
 	}
 
 
-	protected double stressFromProjecton(PreCalculatedValues pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij) {
+	protected double stressFromProjecton(PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij) {
 		double sum = 0;
 		
 		for(int i=0; i<B.length; i++) {
@@ -324,7 +324,7 @@ public class UAMDS<M> {
 		return sum;
 	}
 	
-	protected M[][] gradientFromProjection(PreCalculatedValues pre, M[] B, M[] c, int hiDim, int loDim){
+	protected M[][] gradientFromProjection(PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){
 		// variables for derivatives w.r.t. c and B
 		M[] dc = mc.matArray(c.length);
 		M[] dB = mc.matArray(B.length);
@@ -445,7 +445,7 @@ public class UAMDS<M> {
 	}
 	
 	
-	private class PreCalculatedValues {
+	public static class PreCalculatedValues<M> {
 		public final int n;
 		public final M[] U;
 		public final M[] S;
@@ -459,44 +459,9 @@ public class UAMDS<M> {
 		public final M[][] muisubmujTUj_T;
 		public final double[][] norm2muisubmuj;
 		public final M[][] Zij;
-		
-		
-//		public PreCalculatedValues(List<M[]> uss, List<M> mus) {
-//			int n=uss.size();
-//			this.SsqrtiUiTUjSsqrtj = mc.matArray(n,n);
-//			this.muisubmujTUi = mc.matArray(n,n);
-//			this.muisubmujTUj = mc.matArray(n,n);
-//			this.muisubmujTUi_T = mc.matArray(n,n);
-//			this.muisubmujTUj_T = mc.matArray(n,n);
-//			this.norm2muisubmuj = new double[n][n];
-//			this.Zij = mc.matArray(n,n);
-//			
-//			for(int i=0; i<n; i++) {
-//				M[] uss_i = uss.get(i);
-//				M mui = mus.get(i);
-//				M Ui = uss_i[0];
-//				M Ssqrti = uss_i[2];
-//				for(int j=i; j<n; j++) {
-//					M[] uss_j = uss.get(j);
-//					M muj = mus.get(j);
-//					M Uj = uss_j[0];
-//					M Ssqrtj = uss_j[2];
-//					
-//					{ // precalculation
-//						SsqrtiUiTUjSsqrtj[i][j] = mc.mult_aTb(mc.mult_ab(Ui, Ssqrti), mc.mult_ab(Uj, Ssqrtj));
-//						muisubmujTUi[i][j] = mc.mult_aTb(mc.sub(mui, muj), Ui);
-//						muisubmujTUj[i][j] = mc.mult_aTb(mc.sub(mui, muj), Uj);
-//						muisubmujTUi_T[i][j] = mc.trp(muisubmujTUi[i][j]);
-//						muisubmujTUj_T[i][j] = mc.trp(muisubmujTUj[i][j]);
-//						norm2muisubmuj[i][j] = mc.norm2(mc.sub(mui, muj));
-//						Zij[i][j] = mc.mult_aTb(Ui, Uj);
-//					}
-//				}
-//			}
-//		}
 
 
-		public PreCalculatedValues(RVPointSet<M> data) {
+		public PreCalculatedValues(MatCalc<M> mc, RVPointSet<M> data) {
 			this.n=data.size();
 			this.mu = data.stream().map(nrv->nrv.mean).toArray(mc::matArray);
 			List<M[]> svds = data.stream().map(nrv->mc.svd(nrv.cov, true)).collect(Collectors.toList());
