@@ -16,9 +16,13 @@ public class UAMDS<M> {
 	
 	protected final MatCalc<M> mc;
 	public boolean verbose = false;
+	public final GradientDescent<M> gd;
 	
 	public UAMDS(MatCalc<M> mc) {
 		this.mc = mc;
+		this.gd = new GradientDescent<>(mc);
+		this.gd.terminationStepSize = 1e-12;
+		this.gd.lineSearchFactor = 1e-3;
 	}
 	
 	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result) {
@@ -179,12 +183,8 @@ public class UAMDS<M> {
 		};
 		*/
 		
-		// gradient descent
-		GradientDescent<M> gd = new GradientDescent<>(mc);
- 		gd.maxDescentSteps = numDescentSteps;
-		gd.terminationStepSize = 1e-12;
-		gd.lineSearchFactor = 1e-3;
-		// minimizing
+		// minimizing with gradient descent
+		gd.maxDescentSteps = numDescentSteps;
 		M xMin = gd.arg_min(fx, dfxa, x, null);
 		if(verbose)
 			System.out.println("stepsize on termination:"+gd.stepSizeOnTermination);

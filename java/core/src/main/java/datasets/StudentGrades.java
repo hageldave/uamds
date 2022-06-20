@@ -8,13 +8,11 @@ import uamds.NRV;
 
 import static uamds.Utils.sq;
 
+/**
+ * Student grades data set as used in our publication.<br>
+ * Load with {@link #get(MatCalc, int)}
+ */
 public class StudentGrades {
-	public static final double var_verybad = sq(6-0)/12;
-	public static final double var_bad = sq(7-6)/12;
-	public static final double var_fairlybad = sq(10-5)/12;
-	public static final double var_fairlygood = sq(14-10)/12;
-	public static final double var_good = sq(18-13)/12;
-	public static final double var_verygood = sq(20-14)/12;
 	
 	public static String[] studentNames = {
 		"Tom",
@@ -124,6 +122,13 @@ public class StudentGrades {
 		return c;
 	}
 	
+	/**
+	 * Returns the grades distributions for the different students.
+	 * @param mc matrix calculator for generic matrix data type
+	 * @param which 0 or 1, chooses modeling for textually expressed grades
+	 * @param <M> matrix data type
+	 * @return array of normally distributed random vectors
+	 */
 	@SuppressWarnings("unchecked")
 	public static <M> NRV<M>[] get(MatCalc<M> mc, int which) {
 		double[][] mark2Distribs = which==0 ? mark2distrib_1 : mark2distrib_2;
