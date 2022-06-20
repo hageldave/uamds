@@ -14,4 +14,20 @@ sudo apt install maven
 mvn clean compile exec:java -D"exec.mainClass"="demo.Example"
 ```
 
+### Use in your own project
+The version 0.0.1 (as archived for the paper publication) has to be manually installed. Future releases could be made available through maven central.
+For building and installing the maven artifact, the same prerequisites as for running the demo apply. To build and install on CLI run the following:
+```sh
+# cd cd into java/core and then execute installation via maven
+mvn clean install
+```
+This will install the artifact into your local maven repository. After that you can use it as a dependency in another maven project.
+```xml
+<dependency>
+	<groupId>de.uni-stuttgart.visus</groupId>
+	<artifactId>uamds-core</artifactId>
+	<version>0.0.1</version>
+</dependency>
+```
+
 
