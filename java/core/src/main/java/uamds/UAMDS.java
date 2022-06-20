@@ -12,12 +12,23 @@ import optimization.generic.problem.ScalarFN;
 import optimization.generic.problem.VectorFN;
 import optimization.generic.solver.GradientDescent;
 
+/**
+ * Class for performing uncertainty-aware multidimensional scaling on sets of
+ * normally distributed random vectors (multivariate normal distributions).
+ * 
+ * @param <M> matrix data type
+ */
 public class UAMDS<M> {
 	
 	protected final MatCalc<M> mc;
 	public boolean verbose = false;
 	public final GradientDescent<M> gd;
 	
+	/**
+	 * Creates a new UAMDS instance that is using the specified matrix calculator object.
+	 *  
+	 * @param mc matrix calculator
+	 */
 	public UAMDS(MatCalc<M> mc) {
 		this.mc = mc;
 		this.gd = new GradientDescent<>(mc);
@@ -139,7 +150,7 @@ public class UAMDS<M> {
 		ScalarFN<M> fx = new ScalarFN<M>() {
 			@Override
 			public double evaluate(M vec) {
-				extractAffineTransform(projectionsDistrSpace, loMeans, vec);
+				extractAffineTransforms(projectionsDistrSpace, loMeans, vec);
 				return stressFromProjecton(pre, projectionsDistrSpace, loMeans, hiDim, loDim, null);
 			}
 		};
@@ -156,7 +167,7 @@ public class UAMDS<M> {
 			
 			@Override
 			public M evaluate(M vec) {
-				extractAffineTransform(B, c, vec);
+				extractAffineTransforms(B, c, vec);
 				M[][] dc_dB = gradientFromProjection(pre, B, c, hiDim, loDim);
 				return vectorizeAffineTransforms(dc_dB[1], dc_dB[0], grad);
 			}
@@ -190,7 +201,7 @@ public class UAMDS<M> {
 			System.out.println("stepsize on termination:"+gd.stepSizeOnTermination);
 		
 		// solution extraction
-		extractAffineTransform(projectionsDistrSpace, loMeans, xMin);		
+		extractAffineTransforms(projectionsDistrSpace, loMeans, xMin);		
 		M[][] result = mc.matArray(2, 0);
 		result[0] = projectionsDistrSpace;
 		result[1] = loMeans;
@@ -220,7 +231,7 @@ public class UAMDS<M> {
 		return target;
 	}
 	
-	protected void extractAffineTransform(M[] Bs, M[] cs, M source) {
+	protected void extractAffineTransforms(M[] Bs, M[] cs, M source) {
 		int hiDim = mc.numCols(Bs[0]);
 		int loDim = mc.numRows(Bs[0]);
 		int n = Bs.length;
