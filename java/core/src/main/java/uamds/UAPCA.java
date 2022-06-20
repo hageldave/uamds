@@ -38,7 +38,7 @@ public class UAPCA<M> {
 		M sampleCov = NRV.estimateFromData(mc, meanMatrix).cov;
 		
 		M uaCov = mc.sub( mc.add(sampleCov, avgCov), centering );
-		// eigendecomposition yields principle vectors (SVD is equivalent to EVD here, but yields ordered vectors)
+		// eigendecomposition yields principal vectors (SVD is equivalent to EVD here, but yields ordered vectors)
 		M[] usv = mc.svd(uaCov, true);
 		return Arrays.copyOf(usv, 2);
 	}

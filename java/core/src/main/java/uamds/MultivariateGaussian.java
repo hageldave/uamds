@@ -2,12 +2,22 @@ package uamds;
 
 import optimization.generic.numerics.MatCalc;
 
+/**
+ * Gaussian probability density function
+ *
+ * @param <M> matrix data type
+ */
 public class MultivariateGaussian<M> {
 
+	/** inverse of covariance matrix */
 	public final M covInv;
+	/** mean */
 	public final M mu;
+	/** scaling term: 1 / sqrt((2π)^d |Σ|) */
 	public final double scaling;
+	/** number of dimensions */
 	public final int d;
+	/** matrix calculator for generic matrix data type */
 	public final MatCalc<M> mc;
 	
 	
