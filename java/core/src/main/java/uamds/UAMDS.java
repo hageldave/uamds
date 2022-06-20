@@ -36,11 +36,11 @@ public class UAMDS<M> {
 		this.gd.lineSearchFactor = 1e-3;
 	}
 	
-	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result) {
+	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result) {
 		return calculateProjection(data, init, result, 100);
 	}
 	
-	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps) {
+	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps) {
 		return calculateProjection(data, init, result, numDescentSteps, null);
 	}
 	
@@ -77,7 +77,7 @@ public class UAMDS<M> {
 	 * 
 	 * @return projected NRVs (normal distributions) N(c_i, W_i)
 	 */
-	public RVPointSet<M> calculateProjection(RVPointSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss) {
+	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss) {
 		int hiDim = data.get(0).d;
 		int loDim = 2;
 		PreCalculatedValues<M> pre = new PreCalculatedValues<>(mc,data);
@@ -88,7 +88,7 @@ public class UAMDS<M> {
 		M[] c = solution[1];
 		M[] P = mc.matArray(data.size());
 		M[] t = mc.matArray(data.size());
-		RVPointSet<M> lowPointset = new RVPointSet<>();
+		NRVSet<M> lowPointset = new NRVSet<>();
 		for(int i=0; i<data.size(); i++) {
 			NRV<M> projected = new NRV<M>(mc, c[i], mc.mult_abcT(B[i], pre.S[i], B[i]));
 			lowPointset.add(projected);
@@ -122,12 +122,8 @@ public class UAMDS<M> {
 		/* initialize affine transforms */
 		M[] B,c;
 		if(init != null && init.length >= 2 && init[0].length == n) {
-			B = Arrays.stream(init[0])
-					.map(mc::copy)
-					.toArray(mc::matArray);
-			c = Arrays.stream(init[1])
-					.map(mc::copy)
-					.toArray(mc::matArray);
+			B = Arrays.stream(init[0]).map(mc::copy).toArray(mc::matArray);
+			c = Arrays.stream(init[1]).map(mc::copy).toArray(mc::matArray);
 			// check
 			for(int i=0;i<B.length; i++) {
 				if(mc.numCols(B[i])!= hiDim || mc.numRows(B[i])!= loDim || mc.numElem(c[i])!= loDim)
@@ -476,7 +472,7 @@ public class UAMDS<M> {
 		public final M[][] Zij;
 
 
-		public PreCalculatedValues(MatCalc<M> mc, RVPointSet<M> data) {
+		public PreCalculatedValues(MatCalc<M> mc, NRVSet<M> data) {
 			this.n=data.size();
 			this.mu = data.stream().map(nrv->nrv.mean).toArray(mc::matArray);
 			/* singular value decompositions of covariances */

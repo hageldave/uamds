@@ -7,7 +7,7 @@ import datasets.StudentGrades;
 import optimization.ejml.MatCalcEJML;
 import optimization.generic.numerics.MatCalc;
 import uamds.NRV;
-import uamds.RVPointSet;
+import uamds.NRVSet;
 import uamds.Ref;
 import uamds.UAMDS;
 
@@ -20,12 +20,12 @@ public class Example {
 		executeExample(mc);
 	}
 	
-	public static <M> RVPointSet<M> getData_StudentGrades(MatCalc<M> mc){
-		return RVPointSet.fromArray(StudentGrades.get(mc, 0));
+	public static <M> NRVSet<M> getData_StudentGrades(MatCalc<M> mc){
+		return NRVSet.fromArray(StudentGrades.get(mc, 0));
 	}
 	
-	public static <M> RVPointSet<M> getData_RandomizedDistribs(MatCalc<M> mc){
-		RVPointSet<M> data = new RVPointSet<>();
+	public static <M> NRVSet<M> getData_RandomizedDistribs(MatCalc<M> mc){
+		NRVSet<M> data = new NRVSet<>();
 		int dimensionality = 4;
 		int numInstances = 5;
 		/* we are generating a number of random Gaussians for demonstration */
@@ -39,7 +39,7 @@ public class Example {
 	
 	public static <M> void executeExample(MatCalc<M> mc) {
 		/* prepare data */
-		RVPointSet<M> data = getData_StudentGrades(mc);
+		NRVSet<M> data = getData_StudentGrades(mc);
 		// RVPointSet<M> data = getData_RandomizedDistribs(mc);
 		
 		/* prepare objects for UAMDS */
@@ -48,7 +48,7 @@ public class Example {
 		Ref<M[][]> result = new Ref<>();
 		Ref<double[][]> pairwiseLoss = new Ref<>();
 		/* perform 10 iterations of UAMDS */
-		RVPointSet<M> projectedData = uamds.calculateProjection(
+		NRVSet<M> projectedData = uamds.calculateProjection(
 				data, 
 				init, 
 				result,

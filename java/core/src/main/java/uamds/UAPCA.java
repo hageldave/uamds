@@ -23,8 +23,8 @@ public class UAPCA<M> {
 	 * @param data set of random vectors
 	 * @return projection matrix (each column is a principal vector), and vector of eigenvalues
 	 */
-	public M[] calculate(RVPointSet<M> data) {
-		/* calculating (uncertainty aware) covariance matrix for Eigen decomp */
+	public M[] calculate(NRVSet<M> data) {
+		/* calculating (uncertainty-aware) covariance matrix for Eigen decomp */
 		
 		// empirical mean
 		M mu = data.stream().map(nrv->nrv.mean).reduce(mc::add).get();
@@ -43,18 +43,18 @@ public class UAPCA<M> {
 		return Arrays.copyOf(usv, 2);
 	}
 	
-	public RVPointSet<M> projectData(RVPointSet<M> data, int d) {
+	public NRVSet<M> projectData(NRVSet<M> data, int d) {
 		return projectData(data, d, null);
 	}
 	
-	public RVPointSet<M> projectData(RVPointSet<M> data, int d, Ref<M> proj) {
+	public NRVSet<M> projectData(NRVSet<M> data, int d, Ref<M> proj) {
 		M[] pca = calculate(data);
 		M projection = mc.getRange(pca[0], 0, mc.numRows(pca[0]), 0, d);
 		M transform = mc.trp(projection);
 		
-		RVPointSet<M> projected = data.stream()
+		NRVSet<M> projected = data.stream()
 				.map(nrv->nrv.transform(transform))
-				.collect(Collectors.toCollection(RVPointSet::new));
+				.collect(Collectors.toCollection(NRVSet::new));
 		if(proj != null)
 			proj.set(transform);
 		return projected;
