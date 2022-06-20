@@ -79,8 +79,8 @@ public class LoFiScatter extends JPanel {
 			c = (c & 0x00_ffffff) | (pointOpacity << 24);
 			g2d.setColor(new Color(c, true));
 			for(int i=0; i<points.length; i++) {
-				double x=points[i][0];
-				double y=points[i][1];
+				double x=getAt(points[i],0);
+				double y=getAt(points[i],1);
 				x-=translateX;
 				y-=translateY;
 				x*=scaleX;
@@ -113,17 +113,21 @@ public class LoFiScatter extends JPanel {
 		g2d.scale(1.0, -1.0);
 	}
 	
+	static double getAt(double[] arr, int idx) {
+		return arr[idx%arr.length];
+	}
+	
 	protected Rectangle2D calcContentBounds() {
 		if(pointSets.isEmpty())
 			return new Rectangle2D.Double(0, 0, 1, 1);
 		double minX = pointSets.stream().flatMap(points->Arrays.stream(points))
-				.mapToDouble(p->p[0]).min().getAsDouble();
+				.mapToDouble(p->getAt(p,0)).min().getAsDouble();
 		double maxX = pointSets.stream().flatMap(points->Arrays.stream(points))
-				.mapToDouble(p->p[0]).max().getAsDouble();
+				.mapToDouble(p->getAt(p,0)).max().getAsDouble();
 		double minY = pointSets.stream().flatMap(points->Arrays.stream(points))
-				.mapToDouble(p->p[1]).min().getAsDouble();
+				.mapToDouble(p->getAt(p,1)).min().getAsDouble();
 		double maxY = pointSets.stream().flatMap(points->Arrays.stream(points))
-				.mapToDouble(p->p[1]).max().getAsDouble();
+				.mapToDouble(p->getAt(p,1)).max().getAsDouble();
 		return new Rectangle2D.Double(minX,minY, maxX-minX, maxY-minY);
 	}
 	

@@ -43,7 +43,7 @@ public class Example {
 		// RVPointSet<M> data = getData_RandomizedDistribs(mc);
 		
 		/* prepare objects for UAMDS */
-		UAMDS<M> uamds = new UAMDS<>(mc);
+		UAMDS<M> uamds = new UAMDS<>(mc,2);
 		M[][] init = null;
 		Ref<M[][]> result = new Ref<>();
 		Ref<double[][]> pairwiseLoss = new Ref<>();

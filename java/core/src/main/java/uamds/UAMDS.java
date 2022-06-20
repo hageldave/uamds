@@ -23,17 +23,24 @@ public class UAMDS<M> {
 	protected final MatCalc<M> mc;
 	public boolean verbose = false;
 	public final GradientDescent<M> gd;
+	public final int lowDim;
 	
 	/**
 	 * Creates a new UAMDS instance that is using the specified matrix calculator object.
 	 *  
 	 * @param mc matrix calculator
+	 * @param lowDim number of dimensions in projection space (usually 2)
 	 */
-	public UAMDS(MatCalc<M> mc) {
+	public UAMDS(MatCalc<M> mc, int lowDim) {
 		this.mc = mc;
+		this.lowDim = lowDim;
 		this.gd = new GradientDescent<>(mc);
 		this.gd.terminationStepSize = 1e-12;
 		this.gd.lineSearchFactor = 1e-3;
+	}
+	
+	public UAMDS(MatCalc<M> mc) {
+		this(mc,2);
 	}
 	
 	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result) {
@@ -79,7 +86,7 @@ public class UAMDS<M> {
 	 */
 	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss) {
 		int hiDim = data.get(0).d;
-		int loDim = 2;
+		int loDim = lowDim;
 		PreCalculatedValues<M> pre = new PreCalculatedValues<>(mc,data);
 		
 		M[][] solution = optimizeUAMDS(loDim, pre, init, numDescentSteps);
