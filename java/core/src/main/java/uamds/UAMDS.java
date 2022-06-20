@@ -82,10 +82,10 @@ public class UAMDS<M> {
 		int loDim = 2;
 		PreCalculatedValues<M> pre = new PreCalculatedValues<>(mc,data);
 		
-		M[][] affineTransforms = optimizeUAMDS(loDim, pre, init, numDescentSteps);
+		M[][] solution = optimizeUAMDS(loDim, pre, init, numDescentSteps);
 		// solution extraction and projection
-		M[] B = affineTransforms[0];
-		M[] c = affineTransforms[1];
+		M[] B = solution[0];
+		M[] c = solution[1];
 		M[] P = mc.matArray(data.size());
 		M[] t = mc.matArray(data.size());
 		RVPointSet<M> lowPointset = new RVPointSet<>();
@@ -120,38 +120,37 @@ public class UAMDS<M> {
 		final int hiDim = mc.numElem(pre.mu[0]);
 		
 		/* initialize affine transforms */
-		M[] projectionsDistrSpace;
-		M[] loMeans;
+		M[] B,c;
 		if(init != null && init.length >= 2 && init[0].length == n) {
-			projectionsDistrSpace = Arrays.stream(init[0])
+			B = Arrays.stream(init[0])
 					.map(mc::copy)
 					.toArray(mc::matArray);
-			loMeans = Arrays.stream(init[1])
+			c = Arrays.stream(init[1])
 					.map(mc::copy)
 					.toArray(mc::matArray);
 			// check
-			for(int i=0;i<projectionsDistrSpace.length; i++) {
-				if(mc.numCols(projectionsDistrSpace[i])!= hiDim || mc.numRows(projectionsDistrSpace[i])!= loDim || mc.numElem(loMeans[i])!= loDim)
-					throw new IllegalArgumentException("somethings not matching up with dimensions of provided init");
+			for(int i=0;i<B.length; i++) {
+				if(mc.numCols(B[i])!= hiDim || mc.numRows(B[i])!= loDim || mc.numElem(c[i])!= loDim)
+					throw new IllegalArgumentException("something is not matching up with dimensions of provided init");
 			}
 		} else {
-			projectionsDistrSpace = mc.matArray(n);
-			loMeans = mc.matArray(n);
-			for(int i=0;i<projectionsDistrSpace.length; i++) {
-				projectionsDistrSpace[i] = mc.sub(mc.rand(loDim, hiDim),0.5);
-				loMeans[i] = mc.sub(mc.rand(loDim),0.5);
+			B = mc.matArray(n);
+			c = mc.matArray(n);
+			for(int i=0;i<B.length; i++) {
+				B[i] = mc.sub(mc.rand(loDim, hiDim),0.5);
+				c[i] = mc.sub(mc.rand(loDim),0.5);
 			}
 		}
 		
 		/* create the optimization problem (loss function for stress minimization).
 		 * This needs objects x, f(x), f'(x)
 		 */
-		M x = vectorizeAffineTransforms(projectionsDistrSpace, loMeans, null);
+		M x = vectorizeAffineTransforms(B, c, null);
 		ScalarFN<M> fx = new ScalarFN<M>() {
 			@Override
 			public double evaluate(M vec) {
-				extractAffineTransforms(projectionsDistrSpace, loMeans, vec);
-				return stressFromProjecton(pre, projectionsDistrSpace, loMeans, hiDim, loDim, null);
+				extractAffineTransforms(B, c, vec);
+				return stressFromProjecton(pre, B, c, hiDim, loDim, null);
 			}
 		};
 		VectorFN<M> dfxa = new VectorFN<M>() {
@@ -201,10 +200,10 @@ public class UAMDS<M> {
 			System.out.println("stepsize on termination:"+gd.stepSizeOnTermination);
 		
 		// solution extraction
-		extractAffineTransforms(projectionsDistrSpace, loMeans, xMin);		
+		extractAffineTransforms(B, c, xMin);		
 		M[][] result = mc.matArray(2, 0);
-		result[0] = projectionsDistrSpace;
-		result[1] = loMeans;
+		result[0] = B;
+		result[1] = c;
 		return result;
 	}
 	
@@ -455,7 +454,12 @@ public class UAMDS<M> {
 		return result;
 	}
 	
-	
+	/**
+	 * Class storing constant matrix matrix/vector products occurring
+	 * in the stress and its gradient.
+	 * 
+	 * @param <M> matrix data type
+	 */
 	public static class PreCalculatedValues<M> {
 		public final int n;
 		public final M[] U;
@@ -475,6 +479,7 @@ public class UAMDS<M> {
 		public PreCalculatedValues(MatCalc<M> mc, RVPointSet<M> data) {
 			this.n=data.size();
 			this.mu = data.stream().map(nrv->nrv.mean).toArray(mc::matArray);
+			/* singular value decompositions of covariances */
 			List<M[]> svds = data.stream().map(nrv->mc.svd(nrv.cov, true)).collect(Collectors.toList());
 			this.U = mc.matArray(n);
 			this.S = mc.matArray(n);
@@ -484,6 +489,7 @@ public class UAMDS<M> {
 				S[i] = svds.get(i)[1];
 				Ssqrt[i] = mc.sqrt_inp(mc.copy(S[i]));
 			}
+			/* storage for precomputed constant matrices */
 			this.SsqrtiUiTUjSsqrtj = mc.matArray(n,n);
 			this.muisubmujTUi = mc.matArray(n,n);
 			this.muisubmujTUj = mc.matArray(n,n);
