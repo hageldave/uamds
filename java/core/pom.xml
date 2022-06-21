@@ -77,7 +77,7 @@
 						<configuration>
 							<archive>
 								<manifest>
-									<mainClass>demo.Example</mainClass>
+									<mainClass>uamds.demo.Example</mainClass>
 								</manifest>
 							</archive>
 							<descriptorRefs>

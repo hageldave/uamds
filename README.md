@@ -11,7 +11,7 @@ In Ubuntu Linux the former option is quite straight forward.
 sudo apt install openjdk-11-jdk
 sudo apt install maven
 # cd into java/core and then execute maven build&run:
-mvn clean compile exec:java -D"exec.mainClass"="demo.Example"
+mvn clean compile exec:java -D"exec.mainClass"="uamds.demo.Example"
 ```
 
 ### Use in your own project
