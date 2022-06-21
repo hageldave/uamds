@@ -1,6 +1,6 @@
-package optimization.generic.problem;
+package uamds.optimization.generic.problem;
 
-import optimization.generic.numerics.MatCalc;
+import uamds.optimization.generic.numerics.MatCalc;
 
 /**
  * Function taking vector input and giving scalar output.

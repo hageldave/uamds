@@ -1,6 +1,6 @@
-package uamds;
+package uamds.other;
 
-import optimization.generic.numerics.MatCalc;
+import uamds.optimization.generic.numerics.MatCalc;
 
 /**
  * Gaussian probability density function

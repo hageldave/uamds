@@ -1,4 +1,4 @@
-package demo;
+package uamds.demo;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

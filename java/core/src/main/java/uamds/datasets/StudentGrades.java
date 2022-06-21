@@ -1,12 +1,12 @@
-package datasets;
+package uamds.datasets;
+
+import static uamds.other.Utils.sq;
 
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import optimization.generic.numerics.MatCalc;
-import uamds.NRV;
-
-import static uamds.Utils.sq;
+import uamds.optimization.generic.numerics.MatCalc;
+import uamds.other.NRV;
 
 /**
  * Student grades data set as used in our publication.<br>

@@ -1,15 +1,15 @@
-package demo;
+package uamds.demo;
 
 import java.awt.Color;
 import java.util.ArrayList;
 
-import datasets.StudentGrades;
-import optimization.ejml.MatCalcEJML;
-import optimization.generic.numerics.MatCalc;
-import uamds.NRV;
-import uamds.NRVSet;
-import uamds.Ref;
 import uamds.UAMDS;
+import uamds.datasets.StudentGrades;
+import uamds.optimization.ejml.MatCalcEJML;
+import uamds.optimization.generic.numerics.MatCalc;
+import uamds.other.NRV;
+import uamds.other.NRVSet;
+import uamds.other.Ref;
 
 public class Example {
 

@@ -1,4 +1,4 @@
-package optimization.history;
+package uamds.optimization.history;
 
 public interface DescentLog {
 

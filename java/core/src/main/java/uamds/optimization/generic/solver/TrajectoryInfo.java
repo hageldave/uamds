@@ -1,4 +1,4 @@
-package optimization.generic.solver;
+package uamds.optimization.generic.solver;
 
 public class TrajectoryInfo implements Cloneable {
 	public double[] x;

@@ -1,9 +1,9 @@
-package optimization.generic.solver;
+package uamds.optimization.generic.solver;
 
-import optimization.generic.numerics.MatCalc;
-import optimization.generic.problem.ScalarFN;
-import optimization.generic.problem.VectorFN;
-import optimization.history.DescentLog;
+import uamds.optimization.generic.numerics.MatCalc;
+import uamds.optimization.generic.problem.ScalarFN;
+import uamds.optimization.generic.problem.VectorFN;
+import uamds.optimization.history.DescentLog;
 
 /**
  * Gradient descent instance with hyper parameter configuration.

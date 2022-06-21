@@ -1,7 +1,7 @@
-package optimization.generic.numerics;
+package uamds.optimization.generic.numerics;
 
-import optimization.generic.problem.ScalarFN;
-import optimization.generic.problem.VectorFN;
+import uamds.optimization.generic.problem.ScalarFN;
+import uamds.optimization.generic.problem.VectorFN;
 
 /**
  * Computed gradient using finite differences

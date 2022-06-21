@@ -1,16 +1,19 @@
 package uamds;
 
-import static uamds.Utils.sq;
+import static uamds.other.Utils.sq;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import optimization.generic.numerics.MatCalc;
-import optimization.generic.problem.ScalarFN;
-import optimization.generic.problem.VectorFN;
-import optimization.generic.solver.GradientDescent;
+import uamds.optimization.generic.numerics.MatCalc;
+import uamds.optimization.generic.problem.ScalarFN;
+import uamds.optimization.generic.problem.VectorFN;
+import uamds.optimization.generic.solver.GradientDescent;
+import uamds.other.NRV;
+import uamds.other.NRVSet;
+import uamds.other.Ref;
 
 /**
  * Class for performing uncertainty-aware multidimensional scaling on sets of

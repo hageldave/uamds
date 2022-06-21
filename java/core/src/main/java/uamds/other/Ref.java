@@ -1,4 +1,4 @@
-package uamds;
+package uamds.other;
 
 import java.util.LinkedList;
 import java.util.function.Consumer;

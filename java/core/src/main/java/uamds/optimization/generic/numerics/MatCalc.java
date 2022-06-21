@@ -1,4 +1,4 @@
-package optimization.generic.numerics;
+package uamds.optimization.generic.numerics;
 
 import java.util.Arrays;
 import java.util.Random;

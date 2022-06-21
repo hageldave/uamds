@@ -1,8 +1,8 @@
-package uamds;
+package uamds.other;
 
 import java.io.Serializable;
 
-import optimization.generic.numerics.MatCalc;
+import uamds.optimization.generic.numerics.MatCalc;
 
 /**
  * Normally distributed random vector

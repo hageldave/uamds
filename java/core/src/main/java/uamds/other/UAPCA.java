@@ -1,9 +1,9 @@
-package uamds;
+package uamds.other;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import optimization.generic.numerics.MatCalc;
+import uamds.optimization.generic.numerics.MatCalc;
 
 /**
  * Implementation of "uncertainty-aware principal component analysis"

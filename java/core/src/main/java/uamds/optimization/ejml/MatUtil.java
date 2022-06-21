@@ -1,4 +1,4 @@
-package optimization.ejml;
+package uamds.optimization.ejml;
 
 import java.util.Arrays;
 import java.util.Locale;
