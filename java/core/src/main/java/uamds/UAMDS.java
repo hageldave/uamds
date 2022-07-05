@@ -54,6 +54,10 @@ public class UAMDS<M> {
 		return calculateProjection(data, init, result, numDescentSteps, null);
 	}
 	
+	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss){
+		return calculateProjection(data, init, result, numDescentSteps, loss, null);
+	}
+	
 	/**
 	 * Performs a number of iterations of UAMDS.
 	 * For each high-dimensional normal distribution N(μ_i, Σ_i) in the data set, its low dimensional
@@ -85,9 +89,12 @@ public class UAMDS<M> {
 	 * @param loss (optional, can be null) will hold the pairwise stress between projected NRVs when the method returns.<br>
 	 * loss[i][j]=loss[j][i] = 'stress between distribution i and j in the projection'
 	 * 
+	 * @param stressComps (optional, can be null) will hold the components 1,2,3 of the pairwise stress between projected NRVs when the method returns.<br>
+	 * stress[k][i][j]=loss[k][j][i] = 'stress component k (in 0,1,2) between distribution i and j in the projection'
+	 * 
 	 * @return projected NRVs (normal distributions) N(c_i, W_i)
 	 */
-	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss) {
+	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result, int numDescentSteps, Ref<double[][]> loss, Ref<double[][][]> stressComps) {
 		int hiDim = data.get(0).d;
 		int loDim = lowDim;
 		PreCalculatedValues<M> pre = new PreCalculatedValues<>(mc,data);
@@ -115,9 +122,13 @@ public class UAMDS<M> {
 		}
 		
 		double[][] loss_ij = new double[data.size()][data.size()];
-		double stress = stressFromProjecton(pre, B, c, hiDim, loDim, loss_ij);
+		double[][][] loss_kij = new double[3][data.size()][data.size()];
+		double stress = stressFromProjecton(pre, B, c, hiDim, loDim, loss_ij, loss_kij);
 		if(loss!=null)
 			loss.set(loss_ij);
+		if(stressComps!=null) {
+			stressComps.set(loss_kij);
+		}
 		if(verbose)
 			System.out.println("stress=" + stress);
 	
@@ -156,7 +167,7 @@ public class UAMDS<M> {
 			@Override
 			public double evaluate(M vec) {
 				extractAffineTransforms(B, c, vec);
-				return stressFromProjecton(pre, B, c, hiDim, loDim, null);
+				return stressFromProjecton(pre, B, c, hiDim, loDim, null, null);
 			}
 		};
 		VectorFN<M> dfxa = new VectorFN<M>() {
@@ -256,7 +267,7 @@ public class UAMDS<M> {
 	}
 
 
-	protected double stressFromProjecton(PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij) {
+	protected double stressFromProjecton(PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
 		double sum = 0;
 		
 		for(int i=0; i<B.length; i++) {
@@ -333,6 +344,11 @@ public class UAMDS<M> {
 				sum += loss;
 				if(loss_ij != null) {
 					loss_ij[i][j] = loss_ij[j][i] = loss;
+				}
+				if(loss_kij != null) {
+					loss_kij[0][i][j] = loss_kij[0][j][i] = term1;
+					loss_kij[1][i][j] = loss_kij[1][j][i] = term2;
+					loss_kij[2][i][j] = loss_kij[2][j][i] = term3;
 				}
 			}
 		}
