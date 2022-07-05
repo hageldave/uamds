@@ -269,91 +269,95 @@ public class UAMDS<M> {
 
 	protected double stressFromProjecton(PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
 		double sum = 0;
-		
 		for(int i=0; i<B.length; i++) {
-			M Si = pre.S[i];
-			M Ssqrti = pre.Ssqrt[i];
-			M Bi = B[i];
-			M ci = c[i];
 			for(int j=i; j<B.length; j++) {
-				M Sj = pre.S[j];
-				M Ssqrtj = pre.Ssqrt[j];
-				M Bj = B[j];
-				M cj = c[j];
-				
-				M temp;
-				
-				double term1;
-				{
-					// term 1 part 1 : ||Si - Si^(1/2)Bi^T BiSi^(1/2)||_F^2
-					temp = mc.mult_ab(Bi, Ssqrti);
-					temp = mc.sub(Si, mc.mult_aTb(temp, temp));
-					double part1 = mc.frob2(temp);
-
-					// term 1 part 2 : same as part 1 but with j
-					temp = mc.mult_ab(Bj, Ssqrtj);
-					temp = mc.sub(Sj, mc.mult_aTb(temp, temp));
-					double part2 = mc.frob2(temp);
-
-					// term 1 part 3 :
-					var tempStatic = pre.SsqrtiUiTUjSsqrtj[i][j];// mc.mult_aTb(mc.mult_ab(Ui, Ssqrti), mc.mult_ab(Uj, Ssqrtj));
-					temp = mc.mult_aTb(mc.mult_ab(Bi, Ssqrti), mc.mult_ab(Bj, Ssqrtj));
-					temp = mc.sub(tempStatic, temp);
-					double part3 = mc.frob2(temp);
-					
-					// term 1
-					term1 = 2*(part1+part2)+4*part3;
-				}
-
-				double term2;
-				{
-					// term2 part 1 : sum_k^n [ Si_k * ( <Ui_k, mui-muj> - <Bi_k, ci-cj> )^2 ]
-					temp = pre.muisubmujTUi[i][j]; // mc.mult_aTb(mc.sub(mui, muj), Ui);
-					temp = mc.sub(temp, mc.mult_aTb(mc.sub(ci, cj), Bi));
-					temp = mc.elmmul(temp, temp);
-					double part1 = mc.sum(mc.mult_ab(temp, Si));
-					
-					temp = pre.muisubmujTUj[i][j]; // mc.mult_aTb(mc.sub(mui, muj), Uj);
-					temp = mc.sub(temp, mc.mult_aTb(mc.sub(ci, cj), Bj));
-					temp = mc.elmmul(temp, temp);
-					double part2 = mc.sum(mc.mult_ab(temp, Sj));
-					
-					// term 2
-					term2 = part1 + part2;
-				}
-				
-				double term3;
-				{
-					double norm1 = pre.norm2muisubmuj[i][j]; // mc.frob2(mc.sub(mui, muj));
-					double norm2 = mc.norm2(mc.sub(ci, cj));
-					double part1 = norm1-norm2;
-										
-					double part2=0, part3=0;
-					for(int k=0; k<hiDim; k++) {
-						double sigmai = mc.get(Si,k,k);
-						M bik = mc.getCol(Bi, k);
-						double sigmaj = mc.get(Sj, k,k);
-						M bjk = mc.getCol(Bj, k);
-						part2 += (1.0 - mc.norm2(bik))*sigmai;
-						part3 += (1.0 - mc.norm2(bjk))*sigmaj;
-					}
-					
-					term3 = sq(part1 + part2 + part3);
-				}
-				double loss = term1+term2+term3;
+				double loss = stressFromProjecton_ij(i, j, pre, B, c, hiDim, loDim, loss_ij, loss_kij);
 				sum += loss;
-				if(loss_ij != null) {
-					loss_ij[i][j] = loss_ij[j][i] = loss;
-				}
-				if(loss_kij != null) {
-					loss_kij[0][i][j] = loss_kij[0][j][i] = term1;
-					loss_kij[1][i][j] = loss_kij[1][j][i] = term2;
-					loss_kij[2][i][j] = loss_kij[2][j][i] = term3;
-				}
 			}
 		}
-		
 		return sum;
+	}
+	
+	protected double stressFromProjecton_ij(int i, int j, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
+		M Si = pre.S[i];
+		M Ssqrti = pre.Ssqrt[i];
+		M Bi = B[i];
+		M ci = c[i];
+
+		M Sj = pre.S[j];
+		M Ssqrtj = pre.Ssqrt[j];
+		M Bj = B[j];
+		M cj = c[j];
+
+		M temp;
+
+		double term1;
+		{
+			// term 1 part 1 : ||Si - Si^(1/2)Bi^T BiSi^(1/2)||_F^2
+			temp = mc.mult_ab(Bi, Ssqrti);
+			temp = mc.sub(Si, mc.mult_aTb(temp, temp));
+			double part1 = mc.frob2(temp);
+
+			// term 1 part 2 : same as part 1 but with j
+			temp = mc.mult_ab(Bj, Ssqrtj);
+			temp = mc.sub(Sj, mc.mult_aTb(temp, temp));
+			double part2 = mc.frob2(temp);
+
+			// term 1 part 3 :
+			var tempStatic = pre.SsqrtiUiTUjSsqrtj[i][j];// mc.mult_aTb(mc.mult_ab(Ui, Ssqrti), mc.mult_ab(Uj, Ssqrtj));
+			temp = mc.mult_aTb(mc.mult_ab(Bi, Ssqrti), mc.mult_ab(Bj, Ssqrtj));
+			temp = mc.sub(tempStatic, temp);
+			double part3 = mc.frob2(temp);
+
+			// term 1
+			term1 = 2*(part1+part2)+4*part3;
+		}
+
+		double term2;
+		{
+			// term2 part 1 : sum_k^n [ Si_k * ( <Ui_k, mui-muj> - <Bi_k, ci-cj> )^2 ]
+			temp = pre.muisubmujTUi[i][j]; // mc.mult_aTb(mc.sub(mui, muj), Ui);
+			temp = mc.sub(temp, mc.mult_aTb(mc.sub(ci, cj), Bi));
+			temp = mc.elmmul(temp, temp);
+			double part1 = mc.sum(mc.mult_ab(temp, Si));
+
+			temp = pre.muisubmujTUj[i][j]; // mc.mult_aTb(mc.sub(mui, muj), Uj);
+			temp = mc.sub(temp, mc.mult_aTb(mc.sub(ci, cj), Bj));
+			temp = mc.elmmul(temp, temp);
+			double part2 = mc.sum(mc.mult_ab(temp, Sj));
+
+			// term 2
+			term2 = part1 + part2;
+		}
+
+		double term3;
+		{
+			double norm1 = pre.norm2muisubmuj[i][j]; // mc.frob2(mc.sub(mui, muj));
+			double norm2 = mc.norm2(mc.sub(ci, cj));
+			double part1 = norm1-norm2;
+
+			double part2=0, part3=0;
+			for(int k=0; k<hiDim; k++) {
+				double sigmai = mc.get(Si,k,k);
+				M bik = mc.getCol(Bi, k);
+				double sigmaj = mc.get(Sj, k,k);
+				M bjk = mc.getCol(Bj, k);
+				part2 += (1.0 - mc.norm2(bik))*sigmai;
+				part3 += (1.0 - mc.norm2(bjk))*sigmaj;
+			}
+
+			term3 = sq(part1 + part2 + part3);
+		}
+		double loss = term1+term2+term3;
+		if(loss_ij != null) {
+			loss_ij[i][j] = loss_ij[j][i] = loss;
+		}
+		if(loss_kij != null) {
+			loss_kij[0][i][j] = loss_kij[0][j][i] = term1;
+			loss_kij[1][i][j] = loss_kij[1][j][i] = term2;
+			loss_kij[2][i][j] = loss_kij[2][j][i] = term3;
+		}
+		return loss;
 	}
 	
 	protected M[][] gradientFromProjection(PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){
@@ -364,115 +368,128 @@ public class UAMDS<M> {
 			dc[i] = mc.zeros(loDim);
 			dB[i] = mc.zeros(loDim, hiDim);
 		}
-		// precomputing helper variables
-		M[] BS = IntStream.range(0, B.length).mapToObj(i->mc.mult_ab(B[i],pre.S[i])).toArray(mc::matArray);
 		
 		for(int i=0; i<B.length; i++) {
-			M mui = pre.mu[i];
-			M Si = pre.S[i];
-			M Bi = B[i];
-			M BiSi = BS[i];
-			M ci = c[i];
-			M dBi = dB[i];
-			M dci = dc[i];
-			
 			for(int j=i; j<B.length; j++) {
-				M muj = pre.mu[j];
-				M Sj = pre.S[j];
-				M Bj = B[j];
-				M BjSj = BS[j];
-				M cj = c[j];
-				M dBj = dB[j];
-				M dcj = dc[j];
-				
-				M cisubcj = mc.sub(ci,cj);
-				//TODO: precompute mu diff
-				M muisubmuj = mc.sub(mui, muj);
-				
-				
-				//double term1;
-				{
-					M Zij = pre.Zij[i][j];// = mc.mult_aTb(Ui, Uj);
-					
-					M part1i = mc.sub(mc.mult_ab(mc.mult_abT(BiSi, Bi), BiSi) , mc.mult_ab(BiSi, Si));
-					M part1j = mc.sub(mc.mult_ab(mc.mult_abT(BjSj, Bj), BjSj) , mc.mult_ab(BjSj, Sj));
-					
-					M part2i = mc.sub(mc.mult_ab(mc.mult_abT(BjSj, Bj), BiSi), mc.mult_ab(mc.mult_abT(BjSj, Zij), Si));
-					M part2j = mc.sub(mc.mult_ab(mc.mult_abT(BiSi, Bi), BjSj), mc.mult_ab(mc.mult_ab (BiSi, Zij), Sj));
-					
-					mc.add_inp(dBi, mc.scale(mc.add(part1i, part2i), 8));
-					mc.add_inp(dBj, mc.scale(mc.add(part1j, part2j), 8));
-				}
-
-				//double term2;
-				if(i != j){
-					M part3i = 
-							mc.mult_ab(
-								mc.sub( 
-									mc.mult_ab(cisubcj, mc.mult_aTb(cisubcj,Bi)) ,  
-									mc.mult_ab(cisubcj, pre.muisubmujTUi[i][j]/*mc.mult_aTb(muisubmuj,Ui)*/) ),
-								Si);
-					M part3j = 
-							mc.mult_ab(
-								mc.sub( 
-									mc.mult_ab(cisubcj, mc.mult_aTb(cisubcj,Bj)) ,  
-									mc.mult_ab(cisubcj, pre.muisubmujTUj[i][j]/*mc.mult_aTb(muisubmuj,Uj)*/) ),
-								Sj);
-					
-					mc.add_inp(dBi, mc.scale(part3i, 2));
-					mc.add_inp(dBj, mc.scale(part3j, 2));
-					
-					M part4i = 
-							mc.mult_ab(
-								mc.mult_ab(Bi,Si),
-								mc.sub(
-									pre.muisubmujTUi_T[i][j]/*mc.mult_aTb(Ui, muisubmuj)*/,
-									mc.mult_aTb(Bi, cisubcj))
-								);
-					M part4j = 
-							mc.mult_ab(
-								mc.mult_ab(Bj,Sj),
-								mc.sub(
-									pre.muisubmujTUj_T[i][j]/*mc.mult_aTb(Uj, muisubmuj)*/,
-									mc.mult_aTb(Bj, cisubcj))
-								); 
-					M part4 = mc.scale(mc.add(part4i, part4j), -2);
-					
-					mc.add_inp(dci, part4);
-					mc.sub_inp(dcj, part4);
-				}
-				
-				double term3;
-				{
-					double norm1 = mc.norm2(muisubmuj);
-					double norm2 = mc.norm2(cisubcj);
-					double part1 = norm1-norm2;
-					
-					double part2=0, part3=0;
-					for(int k=0; k<hiDim; k++) {
-						double sigmai = mc.get(Si,k,k);
-						M bik = mc.getCol(Bi,k);
-						double sigmaj = mc.get(Sj,k,k);
-						M bjk = mc.getCol(Bj,k);
-						part2 += (1-mc.norm2(bik))*sigmai;
-						part3 += (1-mc.norm2(bjk))*sigmaj;
-					}
-					
-					term3 = -4*(part1 + part2 + part3);
-					
-					mc.add_inp(dBi, mc.scale(BiSi,term3));
-					mc.add_inp(dBj, mc.scale(BjSj,term3));
-					
-					if(i!=j) {
-						mc.add_inp(dci, mc.scale(cisubcj, term3));
-						mc.sub_inp(dcj, mc.scale(cisubcj, term3));
-					}
-				}
+				M[][] g = gradientFromProjection_ij(i, j, pre, B, c, hiDim, loDim);
+				mc.add_inp(dc[i], g[0][0]);
+				mc.add_inp(dc[j], g[0][1]);
+				mc.add_inp(dB[i], g[1][0]);
+				mc.add_inp(dB[j], g[1][1]);
 			}
 		}
 		
 		M[][] result = mc.matArray(2,0);
 		result[0]=dc; result[1]=dB;
+		return result;
+	}
+	
+	protected M[][] gradientFromProjection_ij(int i, int j, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){	
+		M mui = pre.mu[i];
+		M Si = pre.S[i];
+		M Bi = B[i];
+		M BiSi = mc.mult_ab(Bi, Si);
+		M ci = c[i];
+		M dBi = mc.zeros(loDim, hiDim);
+		M dci = mc.zeros(loDim);
+
+		M muj = pre.mu[j];
+		M Sj = pre.S[j];
+		M Bj = B[j];
+		M BjSj = mc.mult_ab(Bj, Sj);
+		M cj = c[j];
+		M dBj = mc.zeros(loDim, hiDim);
+		M dcj = mc.zeros(loDim);
+
+		M cisubcj = mc.sub(ci,cj);
+		//TODO: precompute mu diff
+		M muisubmuj = mc.sub(mui, muj);
+
+
+		//double term1;
+		{
+			M Zij = pre.Zij[i][j];// = mc.mult_aTb(Ui, Uj);
+
+			M part1i = mc.sub(mc.mult_ab(mc.mult_abT(BiSi, Bi), BiSi) , mc.mult_ab(BiSi, Si));
+			M part1j = mc.sub(mc.mult_ab(mc.mult_abT(BjSj, Bj), BjSj) , mc.mult_ab(BjSj, Sj));
+
+			M part2i = mc.sub(mc.mult_ab(mc.mult_abT(BjSj, Bj), BiSi), mc.mult_ab(mc.mult_abT(BjSj, Zij), Si));
+			M part2j = mc.sub(mc.mult_ab(mc.mult_abT(BiSi, Bi), BjSj), mc.mult_ab(mc.mult_ab (BiSi, Zij), Sj));
+
+			mc.add_inp(dBi, mc.scale(mc.add(part1i, part2i), 8));
+			mc.add_inp(dBj, mc.scale(mc.add(part1j, part2j), 8));
+		}
+
+		//double term2;
+		if(i != j){
+			M part3i = 
+					mc.mult_ab(
+							mc.sub( 
+									mc.mult_ab(cisubcj, mc.mult_aTb(cisubcj,Bi)) ,  
+									mc.mult_ab(cisubcj, pre.muisubmujTUi[i][j]/*mc.mult_aTb(muisubmuj,Ui)*/) ),
+							Si);
+			M part3j = 
+					mc.mult_ab(
+							mc.sub( 
+									mc.mult_ab(cisubcj, mc.mult_aTb(cisubcj,Bj)) ,  
+									mc.mult_ab(cisubcj, pre.muisubmujTUj[i][j]/*mc.mult_aTb(muisubmuj,Uj)*/) ),
+							Sj);
+
+			mc.add_inp(dBi, mc.scale(part3i, 2));
+			mc.add_inp(dBj, mc.scale(part3j, 2));
+
+			M part4i = 
+					mc.mult_ab(
+							mc.mult_ab(Bi,Si),
+							mc.sub(
+									pre.muisubmujTUi_T[i][j]/*mc.mult_aTb(Ui, muisubmuj)*/,
+									mc.mult_aTb(Bi, cisubcj))
+							);
+			M part4j = 
+					mc.mult_ab(
+							mc.mult_ab(Bj,Sj),
+							mc.sub(
+									pre.muisubmujTUj_T[i][j]/*mc.mult_aTb(Uj, muisubmuj)*/,
+									mc.mult_aTb(Bj, cisubcj))
+							); 
+			M part4 = mc.scale(mc.add(part4i, part4j), -2);
+
+			mc.add_inp(dci, part4);
+			mc.sub_inp(dcj, part4);
+		}
+
+		double term3;
+		{
+			double norm1 = mc.norm2(muisubmuj);
+			double norm2 = mc.norm2(cisubcj);
+			double part1 = norm1-norm2;
+
+			double part2=0, part3=0;
+			for(int k=0; k<hiDim; k++) {
+				double sigmai = mc.get(Si,k,k);
+				M bik = mc.getCol(Bi,k);
+				double sigmaj = mc.get(Sj,k,k);
+				M bjk = mc.getCol(Bj,k);
+				part2 += (1-mc.norm2(bik))*sigmai;
+				part3 += (1-mc.norm2(bjk))*sigmaj;
+			}
+
+			term3 = -4*(part1 + part2 + part3);
+
+			mc.add_inp(dBi, mc.scale(BiSi,term3));
+			mc.add_inp(dBj, mc.scale(BjSj,term3));
+
+			if(i!=j) {
+				mc.add_inp(dci, mc.scale(cisubcj, term3));
+				mc.sub_inp(dcj, mc.scale(cisubcj, term3));
+			}
+		}
+		
+		M[][] result = mc.matArray(2,2);
+		result[0][0]=dci;
+		result[1][0]=dBi;
+		result[0][1]=dcj;
+		result[1][1]=dBj;
 		return result;
 	}
 	
