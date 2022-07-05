@@ -11,6 +11,7 @@ import uamds.optimization.generic.numerics.MatCalc;
 import uamds.optimization.generic.problem.ScalarFN;
 import uamds.optimization.generic.problem.VectorFN;
 import uamds.optimization.generic.solver.GradientDescent;
+import uamds.optimization.generic.solver.StochasticGradientDescent;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
 import uamds.other.Ref;
@@ -37,7 +38,7 @@ public class UAMDS<M> {
 	public UAMDS(MatCalc<M> mc, int lowDim) {
 		this.mc = mc;
 		this.lowDim = lowDim;
-		this.gd = new GradientDescent<>(mc);
+		this.gd = new StochasticGradientDescent<>(mc);
 		this.gd.terminationStepSize = 1e-12;
 		this.gd.lineSearchFactor = 1e-3;
 	}
@@ -99,6 +100,7 @@ public class UAMDS<M> {
 		int loDim = lowDim;
 		PreCalculatedValues<M> pre = new PreCalculatedValues<>(mc,data);
 		
+//		M[][] solution = optimizeUAMDS_stochastic(loDim, pre, init, numDescentSteps);
 		M[][] solution = optimizeUAMDS(loDim, pre, init, numDescentSteps);
 		// solution extraction and projection
 		M[] B = solution[0];
@@ -134,7 +136,6 @@ public class UAMDS<M> {
 	
 		return lowPointset;
 	}
-	
 	
 	protected M[][] optimizeUAMDS(final int loDim, PreCalculatedValues<M> pre, M[][] init, int numDescentSteps) {		
 		final int n = pre.n; // number of distributions
@@ -212,6 +213,125 @@ public class UAMDS<M> {
 		
 		// minimizing with gradient descent
 		gd.maxDescentSteps = numDescentSteps;
+		M xMin = gd.arg_min(fx, dfxa, x, null);
+		if(verbose)
+			System.out.println("stepsize on termination:"+gd.stepSizeOnTermination);
+		
+		// solution extraction
+		extractAffineTransforms(B, c, xMin);		
+		M[][] result = mc.matArray(2, 0);
+		result[0] = B;
+		result[1] = c;
+		return result;
+	}
+	
+	protected M[][] optimizeUAMDS_stochastic(final int loDim, PreCalculatedValues<M> pre, M[][] init, int numDescentSteps) {
+		final int n = pre.n; // number of distributions
+		final int hiDim = mc.numElem(pre.mu[0]);
+		
+		/* initialize affine transforms */
+		M[] B,c;
+		if(init != null && init.length >= 2 && init[0].length == n) {
+			B = Arrays.stream(init[0]).map(mc::copy).toArray(mc::matArray);
+			c = Arrays.stream(init[1]).map(mc::copy).toArray(mc::matArray);
+			// check
+			for(int i=0;i<B.length; i++) {
+				if(mc.numCols(B[i])!= hiDim || mc.numRows(B[i])!= loDim || mc.numElem(c[i])!= loDim)
+					throw new IllegalArgumentException("something is not matching up with dimensions of provided init");
+			}
+		} else {
+			B = mc.matArray(n);
+			c = mc.matArray(n);
+			for(int i=0;i<B.length; i++) {
+				B[i] = mc.sub(mc.rand(loDim, hiDim),0.5);
+				c[i] = mc.sub(mc.rand(loDim),0.5);
+			}
+		}
+		
+		/* need to base stress and gradient on a random number which decides on the evaluated pair i,j */
+		Ref<Integer> currentRandom = new Ref<>(0);
+		int[][] ijPairs = IntStream.range(0, n*n)
+				.mapToObj(k->new int[]{k/n,k%n})
+				.filter(ij->ij[0]<=ij[1])
+				.toArray(int[][]::new);
+		/* create the optimization problem (loss function for stress minimization).
+		 * This needs objects x, f(x), f'(x)
+		 */
+		M x = vectorizeAffineTransforms(B, c, null);
+		ScalarFN<M> fx = new ScalarFN<M>() {
+			@Override
+			public double evaluate(M vec) {
+				extractAffineTransforms(B, c, vec);
+				int[] ij = ijPairs[currentRandom.get()%ijPairs.length];
+				int i=ij[0], j=ij[1];
+				return stressFromProjecton_ij(i,j, pre, B, c, hiDim, loDim, null, null);
+			}
+		};
+		VectorFN<M> dfxa = new VectorFN<M>() {
+			M[] B = mc.matArray(n);
+			M[] c = mc.matArray(n);
+			M grad = mc.copy(x);
+			
+			M cZero;
+			M BZero;
+			{ // default constructor
+				for(int i=0; i<B.length; i++) {
+					B[i] = mc.zeros(loDim, hiDim);
+					c[i] = mc.zeros(loDim);
+				}
+				cZero = mc.zeros(loDim);
+				BZero = mc.zeros(loDim, hiDim);
+			}
+			
+			M[] ntimes(int n, M m) {
+				M[] arr = mc.matArray(n);
+				Arrays.fill(arr, m);
+				return arr;
+			}
+			
+			@Override
+			public M evaluate(M vec) {
+				extractAffineTransforms(B, c, vec);
+				
+				int[] ij = ijPairs[currentRandom.get()%ijPairs.length];
+				int i=ij[0], j=ij[1];
+				
+				M[][] dc_dB_ij = gradientFromProjection_ij(i,j,pre, B, c, hiDim, loDim);
+				
+				M[] dc = ntimes(n, cZero), dB = ntimes(n, BZero);
+				dc[i] = dc_dB_ij[0][0];
+				dc[j] = dc_dB_ij[0][1];
+				dB[i] = dc_dB_ij[1][0];
+				dB[j] = dc_dB_ij[1][1];
+				
+				return vectorizeAffineTransforms(dB, dc, grad);
+			}
+		};
+		
+		/* (only for debugging)
+		NumericGradient<M> dfxn = new NumericGradient<>(mc, fx);
+		dfxn.h = 1e-9;
+		M[] tempBs = Arrays.stream(projectionsDistrSpace).map(mc::copy).toArray(mc::matArray);
+		M[] tempcs = Arrays.stream(loMeans).map(mc::copy).toArray(mc::matArray);
+		VectorFN<M> dfx = (x_)->{ // analytic gradient with on the fly numeric gradient check
+			var dxCheck = dfxn.central.evaluate(x_);
+			var dx_ = dfxa.evaluate(x_);
+			var diffGrad = mc.sub(dx_, dxCheck);
+			copyFromVectorizedAffineTransform(tempBs, tempcs, diffGrad);
+			var db = tempBs;
+			var dc = tempcs;
+			double diff = mc.norm(diffGrad);
+			double lenratio = mc.norm(dx_)/mc.norm(dxCheck);
+			double dot = mc.inner(dx_,dxCheck)/(mc.norm(dx_)*mc.norm(dxCheck));
+			if(diff > 0.01)
+				System.err.println("gradient mismatch! diff="+diff+" dot="+dot+ " lenRatio="+lenratio);
+			return dx_;
+		};
+		*/
+		
+		// minimizing with gradient descent
+		gd.maxDescentSteps = numDescentSteps*n*n;
+		((StochasticGradientDescent<M>)gd).randomEater = currentRandom;
 		M xMin = gd.arg_min(fx, dfxa, x, null);
 		if(verbose)
 			System.out.println("stepsize on termination:"+gd.stepSizeOnTermination);
