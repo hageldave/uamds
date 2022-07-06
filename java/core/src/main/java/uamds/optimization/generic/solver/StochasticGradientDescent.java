@@ -1,8 +1,6 @@
 package uamds.optimization.generic.solver;
 
 import java.util.Random;
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
 
 import uamds.optimization.generic.numerics.MatCalc;
 import uamds.optimization.generic.problem.ScalarFN;
@@ -17,8 +15,15 @@ import uamds.other.Ref;
  */
 public class StochasticGradientDescent<M> extends GradientDescent<M> {
 	
+	/** RNG, used to generate a new number on each iteration  */
 	public Random rand;
-	public Ref<Integer> randomEater;
+	/** 
+	 * Reference to the random number of the current iteration.
+	 * Should be used to alter which part of the loss and respective gradient 
+	 * is returned by {@code f} and {@code df} in {@link #arg_min(ScalarFN, VectorFN, Object, DescentLog)}.
+	 * This way stochastic gradient descent can be realized.
+	 */
+	public Ref<Integer> randRef;
 
 	/**
 	 * Creates a new GD instance for matrices of type M using
@@ -49,8 +54,8 @@ public class StochasticGradientDescent<M> extends GradientDescent<M> {
 		M step;
 		do {
 			int r = rand.nextInt(Integer.MAX_VALUE);
-			if(randomEater != null) 
-				randomEater.set(r);
+			if(randRef != null) 
+				randRef.set(r);
 			fx = f.evaluate(x);
 			dfx = df.evaluate(x);
 			d = mc.normalize_inp(mc.scale(dfx, -1.0));
