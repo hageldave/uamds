@@ -2,9 +2,12 @@ package uamds;
 
 import static uamds.other.Utils.sq;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import uamds.optimization.generic.numerics.MatCalc;
 import uamds.optimization.generic.problem.ScalarFN;
@@ -24,7 +27,7 @@ import uamds.other.Ref;
 public class UAMDS<M> {
 	
 	protected final MatCalc<M> mc;
-	protected boolean stochasticGD = true;
+	protected boolean stochasticGD = false;
 	public boolean verbose = false;
 	public final GradientDescent<M> gd;
 	public final int lowDim;
@@ -47,10 +50,23 @@ public class UAMDS<M> {
 		this(mc,2);
 	}
 	
+	/**
+	 * @return true when stochastic gradient descend is used.
+	 */
 	public boolean isStochasticGDEnabled() {
 		return stochasticGD;
 	}
 	
+	/**
+	 * En-/disables the use of stochastic gradient descent (SGD).
+	 * In each step of SGD, one distribution of the data set is randomly selected, 
+	 * and only stress and gradient components that correspond to it are evaluated.
+	 * This makes descent steps cheaper to compute (O(n) instead O(n*n)), but more steps must be taken so that all
+	 * parts of the stress are considered eventually. 
+	 * Overall using SGD usually provides a considerable speed-up.
+	 * 
+	 * @param stochasticGD true when enabling (disabled by default)
+	 */
 	public void setStochasticGDEnabled(boolean stochasticGD) {
 		this.stochasticGD = stochasticGD;
 	}

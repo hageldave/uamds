@@ -48,13 +48,13 @@ public class Example {
 		Ref<M[][]> result = new Ref<>();
 		Ref<double[][]> pairwiseLoss = new Ref<>();
 		/* perform 10 iterations of UAMDS */
+
 		NRVSet<M> projectedData = uamds.calculateProjection(
 				data, 
 				init, 
 				result,
 				10, // number of descend steps 
 				pairwiseLoss);
-		
 		/* report on current loss */
 		double totalLoss = 0;
 		for(int i=0; i<data.size(); i++)
@@ -63,7 +63,8 @@ public class Example {
 		System.out.format("total loss : %.3f%n", totalLoss);
 		System.out.println("------------------------------");
 		
-		/* perform another 2000 iteration of UAMDS (20 x 100 iterations) */
+		/* perform another 2000 iteration of UAMDS (20 x 100 iterations) with stochastic gradient descent */
+		uamds.setStochasticGDEnabled(true);
 		for(int k=0; k<20; k++) {
 			init = result.get(); // use previous result as initialization
 			projectedData = uamds.calculateProjection(
@@ -81,6 +82,24 @@ public class Example {
 			System.out.format("total loss : %.3f%n", totalLoss);
 			System.out.println("------------------------------");
 		}
+		
+		/* perform some final iterations with regular gradient descent */
+		uamds.setStochasticGDEnabled(false);
+		init = result.get(); // use previous result as initialization
+		projectedData = uamds.calculateProjection(
+				data, 
+				init, 
+				result,
+				100, // number of descend steps 
+				pairwiseLoss);
+
+		/* report on current loss */
+		totalLoss = 0;
+		for(int i=0; i<data.size(); i++)
+			for(int j=i; j<data.size(); j++)
+				totalLoss += pairwiseLoss.get()[i][j];
+		System.out.format("total loss : %.3f%n", totalLoss);
+		System.out.println("------------------------------");
 		
 		/* report on final pairwise loss */
 		for(int i=0; i<data.size(); i++)
