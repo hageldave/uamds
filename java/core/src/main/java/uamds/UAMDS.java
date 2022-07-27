@@ -63,9 +63,11 @@ public class UAMDS<M> {
 	 * Overall using SGD usually provides a considerable speed-up.
 	 * 
 	 * @param stochasticGD true when enabling (disabled by default)
+	 * @return this for chaining
 	 */
-	public void setStochasticGDEnabled(boolean stochasticGD) {
+	public UAMDS<M> setStochasticGDEnabled(boolean stochasticGD) {
 		this.stochasticGD = stochasticGD;
+		return this;
 	}
 	
 	public NRVSet<M> calculateProjection(NRVSet<M> data, M[][] init, Ref<M[][]> result) {

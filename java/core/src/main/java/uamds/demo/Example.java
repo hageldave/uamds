@@ -11,11 +11,19 @@ import uamds.other.NRV;
 import uamds.other.NRVSet;
 import uamds.other.Ref;
 
+/**
+ * This example demonstrates how to perform UAMDS on a data set consisting
+ * of multivariate normal distributions.
+ * All methods use a generic matrix data type 'M' which depends on the linear
+ * algebra library used.
+ * In this example the EJML library is used and all matrix operations are
+ * performed via {@link MatCalcEJML} which infers the type DMatrixRMaj for 'M'.
+ */
 public class Example {
 
 	public static void main(String[] args) {
 		/* create wrapper for linear algebra lib of choice (matrix calculator) */
-		MatCalcEJML mc = new MatCalcEJML();
+		MatCalc<?> mc = new MatCalcEJML();
 		/* run example */
 		executeExample(mc);
 	}
@@ -37,23 +45,23 @@ public class Example {
 		return data;
 	}
 	
-	public static <M> void executeExample(MatCalc<M> mc) {
-		/* prepare data */
-		NRVSet<M> data = getData_StudentGrades(mc);
-		// RVPointSet<M> data = getData_RandomizedDistribs(mc);
-		
-		/* prepare objects for UAMDS */
+	public static <M> NRVSet<M> performUAMDS(
+			MatCalc<M> mc, 
+			NRVSet<M> data, 
+			M[][] init, 
+			Ref<M[][]> result, 
+			int numIters, 
+			Ref<double[][]> pairwiseLoss,
+			boolean stochasticGD) 
+	{
 		UAMDS<M> uamds = new UAMDS<>(mc,2);
-		M[][] init = null;
-		Ref<M[][]> result = new Ref<>();
-		Ref<double[][]> pairwiseLoss = new Ref<>();
-		/* perform 10 iterations of UAMDS */
-
+		uamds.setStochasticGDEnabled(stochasticGD);
+		/* perform a number of UAMDS iterations */
 		NRVSet<M> projectedData = uamds.calculateProjection(
 				data, 
 				init, 
 				result,
-				10, // number of descend steps 
+				numIters,
 				pairwiseLoss);
 		/* report on current loss */
 		double totalLoss = 0;
@@ -63,43 +71,28 @@ public class Example {
 		System.out.format("total loss : %.3f%n", totalLoss);
 		System.out.println("------------------------------");
 		
+		return projectedData;
+	}
+
+	public static <M> void executeExample(MatCalc<M> mc) {
+		/* prepare data */
+		NRVSet<M> data = getData_StudentGrades(mc);
+		// RVPointSet<M> data = getData_RandomizedDistribs(mc);
+		
+		/* prepare objects for UAMDS */
+		M[][] init = null;
+		Ref<M[][]> result = new Ref<>();
+		Ref<double[][]> pairwiseLoss = new Ref<>();
+		/* perform 10 iterations of UAMDS */
+		performUAMDS(mc, data, init, result, 10, pairwiseLoss, false);
 		/* perform another 2000 iteration of UAMDS (20 x 100 iterations) with stochastic gradient descent */
-		uamds.setStochasticGDEnabled(true);
 		for(int k=0; k<20; k++) {
 			init = result.get(); // use previous result as initialization
-			projectedData = uamds.calculateProjection(
-					data, 
-					init, 
-					result,
-					100, // number of descend steps 
-					pairwiseLoss);
-
-			/* report on current loss */
-			totalLoss = 0;
-			for(int i=0; i<data.size(); i++)
-				for(int j=i; j<data.size(); j++)
-					totalLoss += pairwiseLoss.get()[i][j];
-			System.out.format("total loss : %.3f%n", totalLoss);
-			System.out.println("------------------------------");
+			performUAMDS(mc, data, init, result, 100, pairwiseLoss, true);
 		}
-		
 		/* perform some final iterations with regular gradient descent */
-		uamds.setStochasticGDEnabled(false);
 		init = result.get(); // use previous result as initialization
-		projectedData = uamds.calculateProjection(
-				data, 
-				init, 
-				result,
-				100, // number of descend steps 
-				pairwiseLoss);
-
-		/* report on current loss */
-		totalLoss = 0;
-		for(int i=0; i<data.size(); i++)
-			for(int j=i; j<data.size(); j++)
-				totalLoss += pairwiseLoss.get()[i][j];
-		System.out.format("total loss : %.3f%n", totalLoss);
-		System.out.println("------------------------------");
+		NRVSet<M> projectedData = performUAMDS(mc, data, init, result, 100, pairwiseLoss, false);
 		
 		/* report on final pairwise loss */
 		for(int i=0; i<data.size(); i++)
@@ -110,7 +103,6 @@ public class Example {
 		for(NRV<M> nrv : projectedData) {
 			System.out.println(nrv);
 		}
-		
 		/* low fidelity visualization */
 		LoFiScatter scatter = new LoFiScatter();
 		scatter.setBackground(Color.white);
