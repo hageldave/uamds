@@ -26,7 +26,7 @@ This will install the artifact into your local maven repository. After that you 
 <dependency>
 	<groupId>de.uni-stuttgart.visus</groupId>
 	<artifactId>uamds-core</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 </dependency>
 ```
 
