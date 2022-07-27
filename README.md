@@ -15,7 +15,7 @@ mvn clean compile exec:java -D"exec.mainClass"="uamds.demo.Example"
 ```
 
 ### Use in your own project
-The version 0.0.1 (as archived for the paper publication) has to be manually installed. Future releases could be made available through maven central.
+The version 0.0.2 (as archived for the paper publication) has to be manually installed. Future releases could be made available through maven central.
 For building and installing the maven artifact, the same prerequisites as for running the demo apply. To build and install on CLI run the following:
 ```sh
 # cd into java/core and then execute installation via maven
