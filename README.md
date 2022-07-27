@@ -1,5 +1,5 @@
 # UAMDS
-Uncertainty-Aware Multidimensional Scaling (to be presented at IEEE VIS)
+Uncertainty-Aware Multidimensional Scaling (to be presented at IEEE VIS 2022)
 
 ## Java Implementation (Reference Implementation)
 The java project consists of a library which is served as a [maven](https://maven.apache.org/what-is-maven.html) artifact.
