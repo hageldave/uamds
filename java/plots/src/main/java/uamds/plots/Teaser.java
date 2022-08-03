@@ -7,6 +7,7 @@ import java.util.function.IntUnaryOperator;
 import hageldave.jplotter.color.ColorMap;
 import hageldave.jplotter.color.DefaultColorMap;
 import hageldave.jplotter.color.SimpleColorMap;
+import hageldave.jplotter.util.Utils;
 import uamds.UAMDS;
 import uamds.optimization.ejml.MatCalcEJML;
 import uamds.optimization.generic.numerics.MatCalc;
@@ -95,15 +96,33 @@ public class Teaser {
 			projection2 = new UAMDS<>(mc).calculateProjection(data2, result.get(), result, 1000);
 		}
 		
-		DistributionPlot<M> distr = new DistributionPlot<>(mc,1) {
-			{
-				this.axisEnabled=false;
-			}
-		};
+		// visualization
+		
+		DistributionPlot<M> distr0 = new DistributionPlot<>(mc,1).enableAxes(false);
+		DistributionPlot<M> distr1 = new DistributionPlot<>(mc,1).enableAxes(false);
+		DistributionPlot<M> distr2 = new DistributionPlot<>(mc,1).enableAxes(false);
 		for(int i=0; i<n; i++) {
-			distr.addDistribution(projection2.get(i), colorProvider.applyAsInt(i));
+			distr0.addEmpty();
+			distr1.addEmpty();
+			distr2.addEmpty();
+			distr0.updateDistribution(i,projection0.get(i), colorProvider.applyAsInt(i),"");
+			distr1.updateDistribution(i,projection1.get(i), colorProvider.applyAsInt(i),"");
+			distr2.updateDistribution(i,projection2.get(i), colorProvider.applyAsInt(i),"");
 		}
-		distr.display("asdasda");
+		// add points of zero variance (plot 0) to plot 1 and 2
+		for(int i=0; i<n; i++) {
+			distr1.addEmpty();
+			distr2.addEmpty();
+			int color = colorProvider.applyAsInt(i);
+			color = Utils.averageColor(color, 0xffffffff);
+			distr1.updateDistribution(i+n,projection0.get(i), color,"");
+			distr2.updateDistribution(i+n,projection0.get(i), color,"");
+		}
+		
+		for(DistributionPlot<?> dp:Arrays.asList(distr0,distr1,distr2)) {
+			dp.coordsys.setCoordinateView(-5, -5, 5, 5);
+			dp.display("UAMDS");
+		}
 		
 		
 		
