@@ -24,7 +24,7 @@ public class PerDimDistributionPlot<M> {
 	MatCalc<M> mc;
 	int d;
 	public Ref<NRVSet<M>> data = new Ref<NRVSet<M>>(new NRVSet<>());
-	DistributionPlot1D<M>[] plots; 
+	public DistributionPlot1D<M>[] plots; 
 	IntUnaryOperator colorForDistrib = (i)->0xff222222;
 	String[] featureLabels;
 
@@ -91,13 +91,15 @@ public class PerDimDistributionPlot<M> {
 	
 	public JFrame display(String title) {
 		JFrame frame = Utils2.createJFrameWithBoilerPlate(title);
+		frame.setPreferredSize(null);
 		Container container = new  Container();
 		container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
 		frame.getContentPane().add(container);
 		for(DistributionPlot1D<M> plot: plots) {
+			plot.canvas.asComponent().setPreferredSize(new Dimension(400/4, 250));
 			container.add(plot.canvas.asComponent());
-			plot.canvas.asComponent().setPreferredSize(new Dimension(400/4, 300));
 		}
+		container.setPreferredSize(new Dimension(400, 250));
 		SwingUtilities.invokeLater(()->{
 			frame.pack();
 			frame.setVisible(true);

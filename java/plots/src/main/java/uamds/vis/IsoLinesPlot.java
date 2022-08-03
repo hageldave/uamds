@@ -70,6 +70,7 @@ public class IsoLinesPlot {
 		Renderer content = coordsys.getContent();
 		Renderer ownContent = contentRenderer;
 		coordsys.setContent(content == null ? ownContent : content.withAppended(ownContent));
+		this.canvas.asComponent().setPreferredSize(new Dimension(480, 480));
 	}
 	
 	public int getNumIsoLineInstances() {
@@ -188,7 +189,6 @@ public class IsoLinesPlot {
 		canvas.addCleanupOnWindowClosingListener(frame);
 		
 		frame.getContentPane().add(canvas.asComponent(), BorderLayout.CENTER);
-		canvas.asComponent().setPreferredSize(new Dimension(480, 480));
 		canvas.asComponent().setBackground(Color.white);
 
 		new CoordSysScrollZoom(canvas, coordsys, new KeyMaskListener(0))

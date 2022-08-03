@@ -1,5 +1,6 @@
 package uamds.plots;
 
+import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.Random;
@@ -17,7 +18,6 @@ import uamds.other.NRV;
 import uamds.other.NRVSet;
 import uamds.other.Ref;
 import uamds.vis.DistributionPlot;
-import uamds.vis.DistributionPlot1D;
 import uamds.vis.PerDimDistributionPlot;
 
 public class Teaser {
@@ -126,6 +126,8 @@ public class Teaser {
 		
 		for(DistributionPlot<?> dp:Arrays.asList(distr0,distr1,distr2)) {
 			dp.coordsys.setCoordinateView(-5, -5, 5, 5);
+			dp.coordsys.setPaddingBot(0).setPaddingLeft(2).setPaddingRight(2).setPaddingTop(0);
+			dp.canvas.asComponent().setPreferredSize(new Dimension(400, 400));
 			dp.display("UAMDS");
 		}
 		
@@ -139,6 +141,9 @@ public class Teaser {
 		pddp2.data.set(data2);
 		for(PerDimDistributionPlot<?> pddp : Arrays.asList(pddp0, pddp1, pddp2)) {
 			pddp.setView(new Rectangle2D.Double(0, -10, 1, 20));
+			Arrays.stream(pddp.plots).forEach(plot->{
+				plot.coordsys.setPaddingBot(-10).setPaddingLeft(0).setPaddingRight(-10).setPaddingTop(1);
+			});
 			pddp.display("data");
 		}
  		
