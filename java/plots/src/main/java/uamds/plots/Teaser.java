@@ -1,8 +1,10 @@
 package uamds.plots;
 
+import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.IntUnaryOperator;
+import java.util.stream.IntStream;
 
 import hageldave.jplotter.color.ColorMap;
 import hageldave.jplotter.color.DefaultColorMap;
@@ -15,6 +17,8 @@ import uamds.other.NRV;
 import uamds.other.NRVSet;
 import uamds.other.Ref;
 import uamds.vis.DistributionPlot;
+import uamds.vis.DistributionPlot1D;
+import uamds.vis.PerDimDistributionPlot;
 
 public class Teaser {
 	
@@ -41,6 +45,7 @@ public class Teaser {
 			colorProvider = (i)->cmap.getColor(i%cmap.numColors());
 			n = distributions.length;
 			d = distributions[0].d;
+			featureLabels = IntStream.range(0, d).mapToObj(i->"dim"+(i+1)).toArray(String[]::new);
 		}
 		// move mean of means to origin
 		M center = Arrays.stream(distributions).map(rv -> rv.mean).reduce(mc::add).get();
@@ -96,7 +101,7 @@ public class Teaser {
 			projection2 = new UAMDS<>(mc).calculateProjection(data2, result.get(), result, 1000);
 		}
 		
-		// visualization
+		// visualization (2D projections)
 		
 		DistributionPlot<M> distr0 = new DistributionPlot<>(mc,1).enableAxes(false);
 		DistributionPlot<M> distr1 = new DistributionPlot<>(mc,1).enableAxes(false);
@@ -124,8 +129,19 @@ public class Teaser {
 			dp.display("UAMDS");
 		}
 		
+		// visualization (dataset whisker plots)
 		
-		
+		PerDimDistributionPlot<M> pddp0 = new PerDimDistributionPlot<>(mc, d, colorProvider, featureLabels);
+		PerDimDistributionPlot<M> pddp1 = new PerDimDistributionPlot<>(mc, d, colorProvider, featureLabels);
+		PerDimDistributionPlot<M> pddp2 = new PerDimDistributionPlot<>(mc, d, colorProvider, featureLabels);
+		pddp0.data.set(data0);
+		pddp1.data.set(data1);
+		pddp2.data.set(data2);
+		for(PerDimDistributionPlot<?> pddp : Arrays.asList(pddp0, pddp1, pddp2)) {
+			pddp.setView(new Rectangle2D.Double(0, -10, 1, 20));
+			pddp.display("data");
+		}
+ 		
 	}
 	
 	@SuppressWarnings("unchecked")
