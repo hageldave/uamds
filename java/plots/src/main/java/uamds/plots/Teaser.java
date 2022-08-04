@@ -3,6 +3,7 @@ package uamds.plots;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
 import java.util.Random;
@@ -19,7 +20,9 @@ import hageldave.jplotter.color.ColorMap;
 import hageldave.jplotter.color.DefaultColorMap;
 import hageldave.jplotter.color.SimpleColorMap;
 import hageldave.jplotter.renderables.Lines;
+import hageldave.jplotter.renderables.Text;
 import hageldave.jplotter.renderers.LinesRenderer;
+import hageldave.jplotter.renderers.TextRenderer;
 import hageldave.jplotter.util.Utils;
 import uamds.UAMDS;
 import uamds.misc.Utils2;
@@ -133,12 +136,13 @@ public class Teaser {
 			distr1.updateDistribution(i+n,projection0.get(i), color,"");
 			distr2.updateDistribution(i+n,projection0.get(i), color,"");
 		}
-		
+		int distrH = 400-8;
+		int distrW = 400;
 		for(DistributionPlot<?> dp:Arrays.asList(distr0,distr1,distr2)) {
 			dp.coordsys.setCoordinateView(-5, -5, 5, 5);
 			dp.coordsys.setPaddingBot(0).setPaddingLeft(2).setPaddingRight(2).setPaddingTop(0);
 			dp.coordsys.setxAxisLabel("").setyAxisLabel("");
-			dp.canvas.asComponent().setPreferredSize(new Dimension(400, 400));
+			dp.canvas.asComponent().setPreferredSize(new Dimension(distrW, distrH));
 		}
 		
 		// visualization (dataset whisker plots)
@@ -154,7 +158,7 @@ public class Teaser {
 			Arrays.stream(pddp.plots).forEach(plot->{
 				plot.coordsys.setPaddingBot(-10).setPaddingLeft(0).setPaddingRight(-10).setPaddingTop(1);
 			});
-			pddp.setPreferredSize(new Dimension(400, 250));
+			pddp.setPreferredSize(new Dimension(400, 220));
 		}
 		
 		// save visualizations to file
@@ -173,17 +177,18 @@ public class Teaser {
 		Container col2 = new Container();
 		allPlots.setLayout(new BoxLayout(allPlots, BoxLayout.X_AXIS));
 		Arrays.asList(col0,col1,col2).forEach(col->col.setLayout(new BoxLayout(col, BoxLayout.Y_AXIS)));
-		allPlots.add(col0);
-		allPlots.add(mkSeparator(new Dimension(2, 400+250)));
-		allPlots.add(col1);
-		allPlots.add(mkSeparator(new Dimension(2, 400+250)));
-		allPlots.add(col2);
 		col0.add(pddp0);
 		col1.add(pddp1);
 		col2.add(pddp2);
 		col0.add(distr0.canvas.asComponent());
 		col1.add(distr1.canvas.asComponent());
 		col2.add(distr2.canvas.asComponent());
+		allPlots.add(mkSideLabels(new Dimension(26, col0.getPreferredSize().height)));
+		allPlots.add(col0);
+		allPlots.add(mkSeparator(new Dimension(2, col0.getPreferredSize().height)));
+		allPlots.add(col1);
+		allPlots.add(mkSeparator(new Dimension(2, col0.getPreferredSize().height)));
+		allPlots.add(col2);
 		
 		JFrame frame = Utils2.createJFrameWithBoilerPlate("teaser");
 		frame.setPreferredSize(null);
@@ -196,10 +201,13 @@ public class Teaser {
 		
 		
 		long time = System.currentTimeMillis();
-		while(time + 500 < System.currentTimeMillis()) {
+		while(time + 500 > System.currentTimeMillis()) {
 			Thread.yield(); // idle for half a second to give plots time to show and render
 		}
-		
+		SwingUtilities.invokeLater(()->{
+			Utils2.exportSVG(allPlots, "fig1_teaser");
+			System.out.println("exported");
+		});
 		
 	}
 	
@@ -212,6 +220,25 @@ public class Teaser {
 		lines.setStrokePattern(0xf0f0);
 		renderer.addItemToRender(lines);
 		renderer.setView(new Rectangle2D.Double(-.5, 0, 1, 1));
+		canvas.setRenderer(renderer);
+		Container c = new Container();
+		c.setLayout(new BoxLayout(c, BoxLayout.Y_AXIS));
+		c.add(canvas.asComponent());
+		c.setPreferredSize(prefSize);
+		return c;
+	}
+	
+	public static Container mkSideLabels(Dimension prefSize) {
+		JPlotterCanvas canvas = new BlankCanvasFallback();
+		TextRenderer renderer = new TextRenderer();
+		Text lblDat = new Text("Dataset", 24, Font.PLAIN);
+		lblDat.setAngle(Math.PI/2).setOrigin(25, 400+(220-(int)lblDat.getBounds().getWidth())/2);
+		
+		Text lblProj = new Text("UAMDS", 24, Font.PLAIN);
+		lblProj.setAngle(Math.PI/2).setOrigin(25, (400-(int)lblProj.getBounds().getWidth())/2);
+		
+		renderer.addItemToRender(lblDat);
+		renderer.addItemToRender(lblProj);
 		canvas.setRenderer(renderer);
 		Container c = new Container();
 		c.setLayout(new BoxLayout(c, BoxLayout.Y_AXIS));

@@ -80,8 +80,12 @@ public class Utils2 {
 	}
 	
 	public static void exportSVG(JPlotterCanvas canvas, String filename) {
-		var svg = SVGUtils.containerToSVG(canvas.asComponent().getParent());
-		SVGUtils.documentToXMLFile(svg, new File(filename + ".svg"));
+		exportSVG(canvas.asComponent().getParent(), filename);
+	}
+	
+	public static void exportSVG(Container c, String filename) {
+		var svg = SVGUtils.containerToSVG(c);
+		SVGUtils.documentToXMLFile(svg, new File(filename + (filename.endsWith(".svg") ? "":".svg")));
 	}
 	
 	public static void exportPNG(JPlotterCanvas canvas, String filename) {
@@ -92,9 +96,13 @@ public class Utils2 {
 		ImageSaver.saveImage(img.toBufferedImage(),filename +".png");
 	}
 	
-	public static void exportPDF(JPlotterCanvas canvas, String filename) {
+	public static void exportPDF(JPlotterCanvas c, String filename) {
+		exportContainerPDF(c.asComponent().getParent(), filename);
+	}
+	
+	public static void exportContainerPDF(Container c, String filename) {
 		try {
-			PDDocument doc = PDFUtils.containerToPDF(canvas.asComponent().getParent());
+			PDDocument doc = PDFUtils.containerToPDF(c);
 			doc.save(filename +".pdf");
 			doc.close();
 			System.out.println("exported pdf");
