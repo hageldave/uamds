@@ -36,6 +36,9 @@ import uamds.vis.PerDimDistributionPlot;
 
 public class Teaser {
 	
+	static int distrH = 400-8;
+	static int distrW = 400;
+	
 	public static void main(String[] args) {
 		MatCalc<?> mc = new MatCalcEJML();
 		genTeaserFig(mc);
@@ -136,8 +139,7 @@ public class Teaser {
 			distr1.updateDistribution(i+n,projection0.get(i), color,"");
 			distr2.updateDistribution(i+n,projection0.get(i), color,"");
 		}
-		int distrH = 400-8;
-		int distrW = 400;
+		
 		for(DistributionPlot<?> dp:Arrays.asList(distr0,distr1,distr2)) {
 			dp.coordsys.setCoordinateView(-5, -5, 5, 5);
 			dp.coordsys.setPaddingBot(0).setPaddingLeft(2).setPaddingRight(2).setPaddingTop(0);
@@ -183,7 +185,7 @@ public class Teaser {
 		col0.add(distr0.canvas.asComponent());
 		col1.add(distr1.canvas.asComponent());
 		col2.add(distr2.canvas.asComponent());
-		allPlots.add(mkSideLabels(new Dimension(26, col0.getPreferredSize().height)));
+		allPlots.add(mkSideLabels(new Dimension(30, col0.getPreferredSize().height)));
 		allPlots.add(col0);
 		allPlots.add(mkSeparator(new Dimension(2, col0.getPreferredSize().height)));
 		allPlots.add(col1);
@@ -205,7 +207,7 @@ public class Teaser {
 			Thread.yield(); // idle for half a second to give plots time to show and render
 		}
 		SwingUtilities.invokeLater(()->{
-			Utils2.exportSVG(allPlots, "fig1_teaser");
+			Utils2.exportSVG(allPlots, "teaser");
 			System.out.println("exported");
 		});
 		
@@ -231,11 +233,11 @@ public class Teaser {
 	public static Container mkSideLabels(Dimension prefSize) {
 		JPlotterCanvas canvas = new BlankCanvasFallback();
 		TextRenderer renderer = new TextRenderer();
-		Text lblDat = new Text("Dataset", 24, Font.PLAIN);
-		lblDat.setAngle(Math.PI/2).setOrigin(25, 400+(220-(int)lblDat.getBounds().getWidth())/2);
+		Text lblDat = new Text("Dataset", 28, Font.PLAIN);
+		lblDat.setAngle(Math.PI/2).setOrigin(29, distrH+(220-(int)lblDat.getBounds().getWidth())/2);
 		
-		Text lblProj = new Text("UAMDS", 24, Font.PLAIN);
-		lblProj.setAngle(Math.PI/2).setOrigin(25, (400-(int)lblProj.getBounds().getWidth())/2);
+		Text lblProj = new Text("UAMDS", 28, Font.PLAIN);
+		lblProj.setAngle(Math.PI/2).setOrigin(29, (distrH-(int)lblProj.getBounds().getWidth())/2);
 		
 		renderer.addItemToRender(lblDat);
 		renderer.addItemToRender(lblProj);
