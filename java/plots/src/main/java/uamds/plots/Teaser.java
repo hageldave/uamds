@@ -1,5 +1,7 @@
 package uamds.plots;
 
+import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
@@ -7,11 +9,20 @@ import java.util.Random;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
+import hageldave.jplotter.canvas.BlankCanvasFallback;
+import hageldave.jplotter.canvas.JPlotterCanvas;
 import hageldave.jplotter.color.ColorMap;
 import hageldave.jplotter.color.DefaultColorMap;
 import hageldave.jplotter.color.SimpleColorMap;
+import hageldave.jplotter.renderables.Lines;
+import hageldave.jplotter.renderers.LinesRenderer;
 import hageldave.jplotter.util.Utils;
 import uamds.UAMDS;
+import uamds.misc.Utils2;
 import uamds.optimization.ejml.MatCalcEJML;
 import uamds.optimization.generic.numerics.MatCalc;
 import uamds.other.NRV;
@@ -29,7 +40,6 @@ public class Teaser {
 	
 	public static <M> void genTeaserFig(MatCalc<M> mc) {
 		NRV<M>[] distributions;
-		String[] labels=null;
 		String[] featureLabels = null;
 		IntUnaryOperator colorProvider = null;
 		final int n;
@@ -127,8 +137,8 @@ public class Teaser {
 		for(DistributionPlot<?> dp:Arrays.asList(distr0,distr1,distr2)) {
 			dp.coordsys.setCoordinateView(-5, -5, 5, 5);
 			dp.coordsys.setPaddingBot(0).setPaddingLeft(2).setPaddingRight(2).setPaddingTop(0);
+			dp.coordsys.setxAxisLabel("").setyAxisLabel("");
 			dp.canvas.asComponent().setPreferredSize(new Dimension(400, 400));
-			dp.display("UAMDS");
 		}
 		
 		// visualization (dataset whisker plots)
@@ -144,9 +154,70 @@ public class Teaser {
 			Arrays.stream(pddp.plots).forEach(plot->{
 				plot.coordsys.setPaddingBot(-10).setPaddingLeft(0).setPaddingRight(-10).setPaddingTop(1);
 			});
-			pddp.display("data");
+			pddp.setPreferredSize(new Dimension(400, 250));
 		}
- 		
+		
+		// save visualizations to file
+		
+//		pddp0.display("data no variance");
+//		pddp1.display("data single variance");
+//		pddp2.display("data full variance");
+//		distr0.display("uamds no variance");
+//		distr1.display("uamds single variance");
+//		distr2.display("uamds full variance");
+		
+		Container allPlots = new Container();
+		allPlots.setBackground(Color.white);
+		Container col0 = new Container();
+		Container col1 = new Container();
+		Container col2 = new Container();
+		allPlots.setLayout(new BoxLayout(allPlots, BoxLayout.X_AXIS));
+		Arrays.asList(col0,col1,col2).forEach(col->col.setLayout(new BoxLayout(col, BoxLayout.Y_AXIS)));
+		allPlots.add(col0);
+		allPlots.add(mkSeparator(new Dimension(2, 400+250)));
+		allPlots.add(col1);
+		allPlots.add(mkSeparator(new Dimension(2, 400+250)));
+		allPlots.add(col2);
+		col0.add(pddp0);
+		col1.add(pddp1);
+		col2.add(pddp2);
+		col0.add(distr0.canvas.asComponent());
+		col1.add(distr1.canvas.asComponent());
+		col2.add(distr2.canvas.asComponent());
+		
+		JFrame frame = Utils2.createJFrameWithBoilerPlate("teaser");
+		frame.setPreferredSize(null);
+		frame.setContentPane(allPlots);
+		SwingUtilities.invokeLater(()->{
+			frame.pack();
+//			frame.setSize(400*3, 400+);
+			frame.setVisible(true);
+		});
+		
+		
+		long time = System.currentTimeMillis();
+		while(time + 500 < System.currentTimeMillis()) {
+			Thread.yield(); // idle for half a second to give plots time to show and render
+		}
+		
+		
+	}
+	
+	public static Container mkSeparator(Dimension prefSize) {
+		JPlotterCanvas canvas = new BlankCanvasFallback();
+		LinesRenderer renderer = new LinesRenderer();
+		Lines lines = new Lines();
+		lines.setGlobalThicknessMultiplier(2);
+		lines.addSegment(0, 1, 0, 0);
+		lines.setStrokePattern(0xf0f0);
+		renderer.addItemToRender(lines);
+		renderer.setView(new Rectangle2D.Double(-.5, 0, 1, 1));
+		canvas.setRenderer(renderer);
+		Container c = new Container();
+		c.setLayout(new BoxLayout(c, BoxLayout.Y_AXIS));
+		c.add(canvas.asComponent());
+		c.setPreferredSize(prefSize);
+		return c;
 	}
 	
 	@SuppressWarnings("unchecked")

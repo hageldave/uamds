@@ -19,7 +19,7 @@ import uamds.other.NRV;
 import uamds.other.NRVSet;
 import uamds.other.Ref;
 
-public class PerDimDistributionPlot<M> {
+public class PerDimDistributionPlot<M> extends Container {
 
 	MatCalc<M> mc;
 	int d;
@@ -33,6 +33,7 @@ public class PerDimDistributionPlot<M> {
 		this.d = d;
 		this.colorForDistrib = colors == null ? colorForDistrib:colors;
 		this.featureLabels = featureLabels;
+		this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		setup();
 		data.addListener(this::onDataChange);
 	}
@@ -63,6 +64,8 @@ public class PerDimDistributionPlot<M> {
 			});
 			csys.setxAxisLabel(featureLabels == null || featureLabels.length == 0 ? "" : featureLabels[i]).setyAxisLabel("");
 			csys.setPaddingRight(-10).setPaddingLeft(0);
+			
+			this.add(plots[i].canvas.asComponent());
 		}
 	}
 	
@@ -88,6 +91,11 @@ public class PerDimDistributionPlot<M> {
 		}
 	}
 	
+	public void setPreferredSizePerPlot(int w, int h) {
+		for(DistributionPlot1D<M> plot: plots) {
+			plot.canvas.asComponent().setPreferredSize(new Dimension(w,h));
+		}
+	}
 	
 	public JFrame display(String title) {
 		JFrame frame = Utils2.createJFrameWithBoilerPlate(title);
@@ -95,10 +103,6 @@ public class PerDimDistributionPlot<M> {
 		Container container = new  Container();
 		container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
 		frame.getContentPane().add(container);
-		for(DistributionPlot1D<M> plot: plots) {
-			plot.canvas.asComponent().setPreferredSize(new Dimension(400/4, 250));
-			container.add(plot.canvas.asComponent());
-		}
 		container.setPreferredSize(new Dimension(400, 250));
 		SwingUtilities.invokeLater(()->{
 			frame.pack();
