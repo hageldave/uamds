@@ -36,8 +36,9 @@ import uamds.vis.PerDimDistributionPlot;
 
 public class Teaser {
 	
-	static int distrH = 400-8;
-	static int distrW = 400;
+	static int compW = 350;
+	static int distrH = compW-8;
+	static int dataH = compW*55/100;
 	
 	public static void main(String[] args) {
 		MatCalc<?> mc = new MatCalcEJML();
@@ -101,13 +102,13 @@ public class Teaser {
 		// now calculate final result for data0
 		// calc UAMDS for data0
 		NRVSet<M> projection0=null;
-		for(int i=0; i<10_0; i++) {
+		for(int i=0; i<100; i++) {
 			projection0 = new UAMDS<>(mc).calculateProjection(data0, init=result.get(), result, 100);
 		}
 		// UAMDS for data1
 		NRVSet<M> projection1=null;
 		new UAMDS<>(mc).calculateProjection(data1, init, result, 100);
-		for(int i=0; i<10_0; i++) {
+		for(int i=0; i<100; i++) {
 			projection1 = new UAMDS<>(mc).calculateProjection(data1, result.get(), result, 100);
 		}
 		// UAMDS for data2
@@ -144,7 +145,7 @@ public class Teaser {
 			dp.coordsys.setCoordinateView(-5, -5, 5, 5);
 			dp.coordsys.setPaddingBot(0).setPaddingLeft(2).setPaddingRight(2).setPaddingTop(0);
 			dp.coordsys.setxAxisLabel("").setyAxisLabel("");
-			dp.canvas.asComponent().setPreferredSize(new Dimension(distrW, distrH));
+			dp.canvas.asComponent().setPreferredSize(new Dimension(compW, distrH));
 		}
 		
 		// visualization (dataset whisker plots)
@@ -160,7 +161,7 @@ public class Teaser {
 			Arrays.stream(pddp.plots).forEach(plot->{
 				plot.coordsys.setPaddingBot(-10).setPaddingLeft(0).setPaddingRight(-10).setPaddingTop(1);
 			});
-			pddp.setPreferredSize(new Dimension(400, 220));
+			pddp.setPreferredSize(new Dimension(compW, dataH));
 		}
 		
 		// save visualizations to file
@@ -197,7 +198,6 @@ public class Teaser {
 		frame.setContentPane(allPlots);
 		SwingUtilities.invokeLater(()->{
 			frame.pack();
-//			frame.setSize(400*3, 400+);
 			frame.setVisible(true);
 		});
 		
@@ -234,7 +234,7 @@ public class Teaser {
 		JPlotterCanvas canvas = new BlankCanvasFallback();
 		TextRenderer renderer = new TextRenderer();
 		Text lblDat = new Text("Dataset", 28, Font.PLAIN);
-		lblDat.setAngle(Math.PI/2).setOrigin(29, distrH+(220-(int)lblDat.getBounds().getWidth())/2);
+		lblDat.setAngle(Math.PI/2).setOrigin(29, distrH+(dataH-(int)lblDat.getBounds().getWidth())/2);
 		
 		Text lblProj = new Text("UAMDS", 28, Font.PLAIN);
 		lblProj.setAngle(Math.PI/2).setOrigin(29, (distrH-(int)lblProj.getBounds().getWidth())/2);
