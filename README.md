@@ -1,5 +1,12 @@
 # UAMDS
-Uncertainty-Aware Multidimensional Scaling (to be presented at IEEE VIS 2022)
+Uncertainty-Aware Multidimensional Scaling (UAMDS) is a dimensionality reduction method for uncertain data. Paper publication available at https://doi.org/10.1109/TVCG.2022.3209420 (to be presented at IEEE VIS 2022).
+
+To model the uncertainty of each element in a dataset, an element is no longer expressed as a vector, but as a random vector with its own multivariate probability distribution.
+So instead of reducing a set of high-dimensional data points to low-dimensional points $p_i \rightarrow x_i$, it reduces high-dimensional random vectors to low-dimensional random vectors $P_i \rightarrow X_i$.  
+This implementation supports datasets of normally distributed random vectors, which means that each element is a tuple consisting of a mean vector and covariance matrix $P_i \sim N(\mu_i, \Sigma_i)$.
+
+UAMDS computes an optimal affine transformation (linear projection & translation) $\Phi_i(p) = M_i~p + d_i$ for each random vector in the dataset, that transforms the random vector to low-dimensional space, $X_i = \Phi_i(P_i)$. Thus, each low-dimensional random vector will also be normally distributed, $X_i \sim N(M_i ~ \mu_i + d_i, ~ M_i ~ \Sigma_i ~ M_i^\top )$ with projection matrix $M_i$ and translation $d_i$.
+
 
 ## Java Implementation (Reference Implementation)
 The java project consists of a library which is served as a [maven](https://maven.apache.org/what-is-maven.html) artifact.
