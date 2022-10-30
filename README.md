@@ -1,5 +1,5 @@
 # UAMDS
-Uncertainty-Aware Multidimensional Scaling (UAMDS) is a dimensionality reduction method for uncertain data. Paper publication available at https://doi.org/10.1109/TVCG.2022.3209420 (to be presented at IEEE VIS 2022).
+Uncertainty-Aware Multidimensional Scaling (UAMDS) is a dimensionality reduction method for uncertain data. Paper publication available at https://doi.org/10.1109/TVCG.2022.3209420 (best paper at IEEE VIS 2022).
 
 To model the uncertainty of each element in a dataset, an element is no longer expressed as a vector, but as a random vector with its own multivariate probability distribution.
 So instead of reducing a set of high-dimensional data points to low-dimensional points $p_i \rightarrow x_i$, it reduces high-dimensional random vectors to low-dimensional random vectors $P_i \rightarrow X_i$.  
