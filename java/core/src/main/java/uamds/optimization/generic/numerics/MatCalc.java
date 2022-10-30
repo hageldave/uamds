@@ -655,7 +655,7 @@ import java.util.stream.IntStream;
 	/**
 	 * @param a matrix of row vectors
 	 * @param b matrix of row vectors
-	 * @return pairwise distances between rows of a and b.
+	 * @return squared pairwise distances between rows of a and b.
 	 * Entry at (r,c) is distance between a_c and b_r.
 	 */
 	 default M pairwiseDistances2(M a, M b) {
