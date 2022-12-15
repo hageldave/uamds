@@ -21,6 +21,20 @@ sudo apt install maven
 mvn clean compile exec:java -D"exec.mainClass"="uamds.demo.Example"
 ```
 
+### Replicability Stamp: Instructions to recreate the teaser figure of the paper
+1. Be on Ubuntu Linux 22.04 (other OS are also possible, but the following instructions are for Ubuntu 22.04)
+2. ```sudo apt install openjdk-17-jdk``` installs Java development kit 17 (11 is also fine) 
+3. ```sudo apt install maven``` installs Apache Maven
+4. ```git clone https://github.com/hageldave/uamds.git``` clones this repository 
+5. ```cd uamds/```
+6. ```git checkout 15bdd7101bca6f04aae73a98a666e001bf0c184a``` checks out the relevant commit 
+7. ```cd java/core/```
+8. ```mvn install``` builds and installs the UAMDS core library via Maven
+9. ```cd ../plots/``` 
+10. ```mvn test exec:java -D"exec.mainClass"="uamds.plots.Teaser"``` builds and runs code that produces the figure
+11. ```CTRL + C``` to terminate the application from command window (alternatively close the Java application window)
+12. ```xdg-open teaser.svg``` opens the teaser figure with your default application for svg files, or use ```firefox teaser.svg```
+
 ### Use in your own project
 The version 0.0.2 (as archived for the paper publication) has to be manually installed. Future releases could be made available through maven central.
 For building and installing the maven artifact, the same prerequisites as for running the demo apply. To build and install on CLI run the following:
