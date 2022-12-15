@@ -51,4 +51,6 @@ This will install the artifact into your local maven repository. After that you 
 11. ```CTRL + C``` to terminate the application from command window (alternatively close the Java application window)
 12. ```xdg-open teaser.svg``` opens the teaser figure with your default application for svg files, or use ```firefox teaser.svg```
 
-Alternatively you can run the provided scripts like this: ```./install-dependencies.sh; ./replicate-figure.sh```
+Alternatively you can run the provided scripts like this: ```./install-dependencies.sh; ./replicate-figure.sh```.
+The *install-dependencies.sh* script may require super user privileges: ```sudo ./install-dependencies.sh```.
+The *replicate-figure.sh* script will clone this repository (again), checkout the required commit, compile the code and run it. A Java application window will open that displays the figure, which will also be exported to *teaser.svg*.
