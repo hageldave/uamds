@@ -31,7 +31,7 @@ mvn clean compile exec:java -D"exec.mainClass"="uamds.demo.Example"
 7. ```cd java/core/```
 8. ```mvn install``` builds and installs the UAMDS core library via Maven
 9. ```cd ../plots/``` 
-10. ```mvn test exec:java -D"exec.mainClass"="uamds.plots.Teaser"``` builds and runs code that produces the figure
+10. ```mvn compile exec:java -D"exec.mainClass"="uamds.plots.Teaser"``` builds and runs code that produces the figure
 11. ```CTRL + C``` to terminate the application from command window (alternatively close the Java application window)
 12. ```xdg-open teaser.svg``` opens the teaser figure with your default application for svg files, or use ```firefox teaser.svg```
 
