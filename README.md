@@ -50,3 +50,5 @@ This will install the artifact into your local maven repository. After that you 
 10. ```mvn compile exec:java -D"exec.mainClass"="uamds.plots.Teaser"``` builds and runs code that produces the figure
 11. ```CTRL + C``` to terminate the application from command window (alternatively close the Java application window)
 12. ```xdg-open teaser.svg``` opens the teaser figure with your default application for svg files, or use ```firefox teaser.svg```
+
+Alternatively you can run the provided scripts like this: ```./install-dependencies.sh; ./replicate-figure.sh```
