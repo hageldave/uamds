@@ -274,6 +274,7 @@ public class MatCalcEJML implements MatCalc<DMatrixRMaj> {
 	
 	@Override
 	public DMatrixRMaj cholesky(DMatrixRMaj m) {
+		m = m.copy();
 		CholeskyDecomposition_F64<DMatrixRMaj> chol = DecompositionFactory_DDRM.chol(false);
 		chol.decompose(m);
 		return chol.getT(null);
