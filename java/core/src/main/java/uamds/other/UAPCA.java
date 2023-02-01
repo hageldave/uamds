@@ -24,6 +24,13 @@ public class UAPCA<M> {
 	 * @return projection matrix (each column is a principal vector), and vector of eigenvalues
 	 */
 	public M[] calculate(NRVSet<M> data) {
+		M uaCov = calcUACov(data);
+		// eigendecomposition yields principal vectors (SVD is equivalent to EVD here, but yields ordered vectors)
+		M[] usv = mc.svd(uaCov, true);
+		return Arrays.copyOf(usv, 2);
+	}
+	
+	public M calcUACov(NRVSet<M> data) {
 		/* calculating (uncertainty-aware) covariance matrix for Eigen decomp */
 		
 		// empirical mean
@@ -34,13 +41,38 @@ public class UAPCA<M> {
 		M avgCov = data.stream().map(nrv->nrv.cov).reduce(mc::add).get();
 		avgCov = mc.scale_inp(avgCov, 1.0/data.size());
 		// sample covariance
-		M meanMatrix = data.stream().map(nrv->mc.trp(nrv.mean)).reduce(mc::concatVert).get();
-		M sampleCov = NRV.estimateFromData(mc, meanMatrix).cov;
+//		M meanMatrix = data.stream().map(nrv->mc.trp(nrv.mean)).reduce(mc::concatVert).get();
+//		M sampleCov = NRV.estimateFromData(mc, meanMatrix).cov;
+		
+		M sampleCov = data.stream().map(nrv->mc.mult_abT(nrv.mean, nrv.mean)).reduce(mc::add).get();
+		mc.scale_inp(sampleCov, 1.0/data.size());
 		
 		M uaCov = mc.sub( mc.add(sampleCov, avgCov), centering );
-		// eigendecomposition yields principal vectors (SVD is equivalent to EVD here, but yields ordered vectors)
-		M[] usv = mc.svd(uaCov, true);
-		return Arrays.copyOf(usv, 2);
+		return uaCov;
+	}
+	
+	public M calcUACovV2(NRVSet<M> data) {
+		/* calculating (uncertainty-aware) covariance matrix for Eigen decomp */
+		final double n = data.size();
+		// empirical mean
+		M mu = data.stream().map(nrv->nrv.mean).reduce(mc::add).get();
+		mu = mc.scale_inp(mu, 1.0/n);
+		M centering = mc.mult_abT(mu, mu);
+		// average covariance
+		M avgCov = data.stream().map(nrv->nrv.cov).reduce(mc::add).get();
+		avgCov = mc.scale_inp(avgCov, 1.0/n);
+		// sample covariance
+		M sampleCov = data.stream().map(nrv->mc.mult_abT(nrv.mean, nrv.mean)).reduce(mc::add).get();
+		mc.scale_inp(sampleCov, 1.0/n);
+		// inter-distribution covariance
+		M interCov = data.stream().map(nrv->nrv.cov).reduce(mc::add).get();
+		interCov = mc.add(interCov, 0); // placeholder, here goes the sum of covariances between distributions
+		mc.scale_inp(interCov, 1.0/(n*n));
+		
+		M pos = mc.add(sampleCov, avgCov);
+		M neg = mc.add(centering, interCov);
+		M uaCov = mc.sub(pos, neg);
+		return uaCov;
 	}
 	
 	public NRVSet<M> projectData(NRVSet<M> data, int d) {
