@@ -2,7 +2,7 @@
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 git clone https://github.com/hageldave/uamds.git
 cd uamds/
-git checkout 15bdd7101bca6f04aae73a98a666e001bf0c184a
+git checkout replicability-stamp
 cd java/core/
 mvn install
 cd ../plots/

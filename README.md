@@ -49,12 +49,15 @@ This will install the artifact into your local maven repository. After that you 
 ```
 
 ### Replicability Stamp: Instructions to reproduce the teaser figure of the paper from scratch
+These are the instructions to replicate the teaser figure (Figure 1) of the paper. Please note that this is the only reproducible figure.
+Other figures were created with non-deterministic code (using random intializations) that yields slightly different results on each run and is not part of this repository.
+
 1. Be on Ubuntu Linux 22.04 (other OS are also possible, but the following instructions are for Ubuntu 22.04)
 2. ```sudo apt install openjdk-17-jdk``` installs Java development kit 17 (11 is also fine) 
 3. ```sudo apt install maven``` installs Apache Maven
 4. ```git clone https://github.com/hageldave/uamds.git``` clones this repository 
 5. ```cd uamds/```
-6. ```git checkout 15bdd7101bca6f04aae73a98a666e001bf0c184a``` checks out the relevant commit 
+6. ```git checkout replicability-stamp``` checks out the replicability version (future versions may behave differently)
 7. ```cd java/core/```
 8. ```mvn install``` builds and installs the UAMDS core library via Maven
 9. ```cd ../plots/``` 
@@ -65,5 +68,6 @@ This will install the artifact into your local maven repository. After that you 
 Alternatively you can run the provided scripts like this: ```./install-dependencies.sh; ./replicate-figure.sh```.
 The *install-dependencies.sh* script may require super user privileges: ```sudo ./install-dependencies.sh```.
 The *replicate-figure.sh* script will clone this repository (again), checkout the required commit, compile the code and run it. A Java application window will open that displays the figure, which will also be exported to *teaser.svg*.
+
 
 
