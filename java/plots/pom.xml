@@ -52,9 +52,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>de.uni-stuttgart.visus</groupId>
+			<groupId>com.github.hageldave.uamds</groupId>
 			<artifactId>uamds-core</artifactId>
-			<version>0.0.2</version>
+			<version>0.0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.hageldave</groupId>

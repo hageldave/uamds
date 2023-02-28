@@ -25,7 +25,7 @@ public class PerDimDistributionPlot<M> extends Container {
 	int d;
 	public Ref<NRVSet<M>> data = new Ref<NRVSet<M>>(new NRVSet<>());
 	public DistributionPlot1D<M>[] plots; 
-	IntUnaryOperator colorForDistrib = (i)->0xff222222;
+	public IntUnaryOperator colorForDistrib = (i)->0xff222222;
 	String[] featureLabels;
 
 	public PerDimDistributionPlot(MatCalc<M> mc, int d, IntUnaryOperator colors, String[] featureLabels) {
