@@ -10,7 +10,7 @@ UAMDS computes an optimal affine transformation (linear projection & translation
 
 ## Java Implementation (Reference Implementation)
 The java project consists of a library which is served as a [maven](https://maven.apache.org/what-is-maven.html) artifact.   
-[![Maven Central](https://img.shields.io/maven-central/v/com.github.hageldave.uamds/uamds-core.svg)](https://search.maven.org/search?q=g:com.github.hageldave.uamds)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.hageldave.uamds/uamds-core.svg)](https://central.sonatype.com/namespace/com.github.hageldave.uamds)
 
 ### Compile & Run Demo
 To compile the library you'll need a [Java development kit](https://adoptopenjdk.net/) (version 11 or higher) and either an installation of maven, or an up to date Java IDE with integrated maven support (such as [Eclipse](https://www.eclipse.org/)).
