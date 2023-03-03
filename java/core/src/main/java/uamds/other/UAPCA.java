@@ -3,7 +3,8 @@ package uamds.other;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.generic.numerics.MatCalc;
+import hageldave.utils.Ref;
 
 /**
  * Implementation of "uncertainty-aware principal component analysis"

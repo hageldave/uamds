@@ -5,7 +5,7 @@ import static uamds.other.Utils.sq;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.generic.numerics.MatCalc;
 import uamds.other.NRV;
 
 /**

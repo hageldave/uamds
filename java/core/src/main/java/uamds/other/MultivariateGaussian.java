@@ -1,6 +1,6 @@
 package uamds.other;
 
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.generic.numerics.MatCalc;
 
 /**
  * Gaussian probability density function

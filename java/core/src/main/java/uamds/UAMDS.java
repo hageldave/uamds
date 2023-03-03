@@ -6,14 +6,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import uamds.optimization.generic.numerics.MatCalc;
-import uamds.optimization.generic.problem.ScalarFN;
-import uamds.optimization.generic.problem.VectorFN;
-import uamds.optimization.generic.solver.GradientDescent;
-import uamds.optimization.generic.solver.StochasticGradientDescent;
+import hageldave.optisled.generic.numerics.MatCalc;
+import hageldave.optisled.generic.problem.ScalarFN;
+import hageldave.optisled.generic.problem.VectorFN;
+import hageldave.optisled.generic.solver.GradientDescent;
+import hageldave.optisled.generic.solver.StochasticGradientDescent;
+import hageldave.utils.Ref;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
-import uamds.other.Ref;
 
 /**
  * Class for performing uncertainty-aware multidimensional scaling on sets of

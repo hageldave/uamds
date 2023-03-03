@@ -3,10 +3,10 @@ package uamds;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.generic.numerics.MatCalc;
+import hageldave.utils.Ref;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
-import uamds.other.Ref;
 import uamds.other.UAPCA;
 
 /**
