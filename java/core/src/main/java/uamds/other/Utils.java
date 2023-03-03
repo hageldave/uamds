@@ -53,7 +53,7 @@ public class Utils {
 	public static <M> M calcProjectionSubspaceSimilarities(MatCalc<M> mc, M[] projections) {
 		M[] normalizedProjs = Arrays.stream(projections)
 				.map(p->{
-					M lengths = mc.sqrt_inp(mc.rowSums(mc.elmmul(p, p)));
+					M lengths = mc.sqrt_inp(mc.rowSums(mc.elemmul(p, p)));
 					M divByLenghts = mc.elemwise_inp(lengths, v->1.0/v);
 					return  mc.mulRowsByColVec(p, divByLenghts);
 				})

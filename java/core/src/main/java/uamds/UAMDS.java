@@ -442,12 +442,12 @@ public class UAMDS<M> {
 			// term2 part 1 : sum_k^n [ Si_k * ( <Ui_k, mui-muj> - <Bi_k, ci-cj> )^2 ]
 			temp = pre.muisubmujTUi[i][j]; // mc.mult_aTb(mc.sub(mui, muj), Ui);
 			temp = mc.sub(temp, mc.mult_aTb(mc.sub(ci, cj), Bi));
-			temp = mc.elmmul(temp, temp);
+			temp = mc.elemmul(temp, temp);
 			double part1 = mc.sum(mc.mult_ab(temp, Si));
 
 			temp = pre.muisubmujTUj[i][j]; // mc.mult_aTb(mc.sub(mui, muj), Uj);
 			temp = mc.sub(temp, mc.mult_aTb(mc.sub(ci, cj), Bj));
-			temp = mc.elmmul(temp, temp);
+			temp = mc.elemmul(temp, temp);
 			double part2 = mc.sum(mc.mult_ab(temp, Sj));
 
 			// term 2

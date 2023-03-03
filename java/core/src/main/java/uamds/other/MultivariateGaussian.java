@@ -58,7 +58,7 @@ public class MultivariateGaussian<M> {
 	public M evalManyAt(M points) {
 		M diff = mc.subRowVec(points, mu);
 		M left = mc.matmul(diff, covInv);
-		M exponents = mc.elmmul(left, diff);
+		M exponents = mc.elemmul(left, diff);
 		exponents = mc.rowSums(exponents);
 		exponents = mc.scale_inp(exponents, -0.5);
 		
