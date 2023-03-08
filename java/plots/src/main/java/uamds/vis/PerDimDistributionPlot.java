@@ -14,10 +14,10 @@ import hageldave.jplotter.coordsys.TickMarkGenerator;
 import hageldave.jplotter.renderers.CoordSysRenderer;
 import hageldave.jplotter.util.Pair;
 import uamds.misc.Utils2;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.generic.numerics.MatCalc;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
-import uamds.other.Ref;
+import hageldave.utils.Ref;
 
 public class PerDimDistributionPlot<M> extends Container {
 

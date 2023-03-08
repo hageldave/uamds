@@ -9,11 +9,13 @@ import java.util.stream.Collectors;
 import hageldave.optisled.generic.numerics.MatCalc;
 import hageldave.optisled.generic.problem.ScalarFN;
 import hageldave.optisled.generic.problem.VectorFN;
-import hageldave.optisled.generic.solver.GradientDescent;
+import hageldave.optisled.generic.solver.DescentAlgorithm;
 import hageldave.optisled.generic.solver.StochasticGradientDescent;
 import hageldave.utils.Ref;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
+
+import static hageldave.optisled.generic.solver.GradientDescent.*;
 
 /**
  * Class for performing uncertainty-aware multidimensional scaling on sets of
@@ -26,7 +28,7 @@ public class UAMDS<M> {
 	protected final MatCalc<M> mc;
 	protected boolean stochasticGD = false;
 	public boolean verbose = false;
-	public final GradientDescent<M> gd;
+	public final DescentAlgorithm<M> gd;
 	public final int lowDim;
 	
 	/**
@@ -39,8 +41,8 @@ public class UAMDS<M> {
 		this.mc = mc;
 		this.lowDim = lowDim;
 		this.gd = new StochasticGradientDescent<>(mc);
-		this.gd.terminationStepSize = 1e-13;
-		this.gd.lineSearchFactor = 1e-3;
+		this.gd.getHyperparams().set(PARAM_TERMINATION_STEPSIZE, 1e-13);
+		this.gd.getHyperparams().set(PARAM_LINESEARCH_FACTOR, 1e-3);
 	}
 	
 	public UAMDS(MatCalc<M> mc) {
@@ -239,10 +241,10 @@ public class UAMDS<M> {
 		*/
 		
 		// minimizing with gradient descent
-		gd.maxDescentSteps = numDescentSteps;
+		gd.getHyperparams().set(PARAM_MAX_ITERATIONS, numDescentSteps);
 		M xMin = gd.arg_min(fx, dfxa, x, null);
 		if(verbose)
-			System.out.println("stepsize on termination:"+gd.stepSizeOnTermination);
+			System.out.println("loss on termination:"+gd.getLoss());
 		
 		// solution extraction
 		extractAffineTransforms(B, c, xMin);		
@@ -326,11 +328,11 @@ public class UAMDS<M> {
 		};
 		
 		// minimizing with gradient descent
-		gd.maxDescentSteps = numDescentSteps*n;
+		gd.getHyperparams().set(PARAM_MAX_ITERATIONS, numDescentSteps*n);
 		((StochasticGradientDescent<M>)gd).randRef = currentRandom;
 		M xMin = gd.arg_min(fx, dfxa, x, null);
 		if(verbose)
-			System.out.println("stepsize on termination:"+gd.stepSizeOnTermination);
+			System.out.println("loss on termination:"+gd.getLoss());
 		
 		// solution extraction
 		extractAffineTransforms(B, c, xMin);		

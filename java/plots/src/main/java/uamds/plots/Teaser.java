@@ -26,11 +26,11 @@ import hageldave.jplotter.renderers.TextRenderer;
 import hageldave.jplotter.util.Utils;
 import uamds.UAMDS;
 import uamds.misc.Utils2;
-import uamds.optimization.ejml.MatCalcEJML;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.ejml.MatCalcEJML;
+import hageldave.optisled.generic.numerics.MatCalc;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
-import uamds.other.Ref;
+import hageldave.utils.Ref;
 import uamds.vis.DistributionPlot;
 import uamds.vis.PerDimDistributionPlot;
 

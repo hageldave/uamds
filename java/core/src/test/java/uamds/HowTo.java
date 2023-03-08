@@ -6,6 +6,7 @@ import org.ejml.data.DMatrixRMaj;
 
 import hageldave.optisled.ejml.MatCalcEJML;
 import hageldave.optisled.generic.numerics.MatCalc;
+import hageldave.optisled.generic.solver.GradientDescent;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
 import hageldave.utils.Ref;
@@ -65,7 +66,7 @@ public class HowTo {
 		Ref<double[][]> stress = new Ref<>();
 		Ref<double[][][]> stressDetailed = new Ref<>();
 		uamds.setStochasticGDEnabled(true);
-		uamds.gd.maxLineSearchIter = 10;
+		uamds.gd.getHyperparams().set(GradientDescent.PARAM_MAX_LINESEARCH_ITER, 10);
 		uamds.calculateProjection(dataset, affineTransf.get(), affineTransf, nIterations, stress, stressDetailed);
 		
 		M[][] init1 = Initialization.initRandom(mc, dataset);

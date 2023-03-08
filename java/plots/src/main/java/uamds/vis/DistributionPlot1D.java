@@ -18,13 +18,13 @@ import hageldave.jplotter.color.SimpleColorMap;
 import hageldave.jplotter.renderables.Lines;
 import hageldave.jplotter.renderables.Text;
 import hageldave.jplotter.renderers.CompleteRenderer;
-import uamds.optimization.ejml.MatCalcEJML;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.ejml.MatCalcEJML;
+import hageldave.optisled.generic.numerics.MatCalc;
 import uamds.other.Utils;
 import uamds.other.MultivariateGaussian;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
-import uamds.other.Ref;
+import hageldave.utils.Ref;
 
 public class DistributionPlot1D<M> extends CoordSysDisplay {
 

@@ -17,8 +17,8 @@ import hageldave.jplotter.renderables.Lines;
 import hageldave.jplotter.renderables.Points;
 import hageldave.jplotter.renderables.Text;
 import hageldave.jplotter.renderers.CoordSysRenderer;
-import uamds.optimization.ejml.MatCalcEJML;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.ejml.MatCalcEJML;
+import hageldave.optisled.generic.numerics.MatCalc;
 import uamds.other.NRV;
 
 public class DistributionPlot<M> extends IsoLinesPlot {
