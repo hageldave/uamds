@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 import uamds.datasets.StudentGrades;
 import uamds.demo.LoFiScatter;
-import uamds.optimization.ejml.MatCalcEJML;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.ejml.MatCalcEJML;
+import hageldave.optisled.generic.numerics.MatCalc;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
 import uamds.other.UAPCA;

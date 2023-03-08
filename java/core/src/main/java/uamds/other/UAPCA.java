@@ -42,9 +42,6 @@ public class UAPCA<M> {
 		M avgCov = data.stream().map(nrv->nrv.cov).reduce(mc::add).get();
 		avgCov = mc.scale_inp(avgCov, 1.0/data.size());
 		// sample covariance
-//		M meanMatrix = data.stream().map(nrv->mc.trp(nrv.mean)).reduce(mc::concatVert).get();
-//		M sampleCov = NRV.estimateFromData(mc, meanMatrix).cov;
-		
 		M sampleCov = data.stream().map(nrv->mc.mult_abT(nrv.mean, nrv.mean)).reduce(mc::add).get();
 		mc.scale_inp(sampleCov, 1.0/data.size());
 		
