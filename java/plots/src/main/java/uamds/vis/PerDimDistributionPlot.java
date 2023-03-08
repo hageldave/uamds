@@ -14,10 +14,10 @@ import hageldave.jplotter.coordsys.TickMarkGenerator;
 import hageldave.jplotter.renderers.CoordSysRenderer;
 import hageldave.jplotter.util.Pair;
 import uamds.misc.Utils2;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.generic.numerics.MatCalc;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
-import uamds.other.Ref;
+import hageldave.utils.Ref;
 
 public class PerDimDistributionPlot<M> extends Container {
 
@@ -25,7 +25,7 @@ public class PerDimDistributionPlot<M> extends Container {
 	int d;
 	public Ref<NRVSet<M>> data = new Ref<NRVSet<M>>(new NRVSet<>());
 	public DistributionPlot1D<M>[] plots; 
-	IntUnaryOperator colorForDistrib = (i)->0xff222222;
+	public IntUnaryOperator colorForDistrib = (i)->0xff222222;
 	String[] featureLabels;
 
 	public PerDimDistributionPlot(MatCalc<M> mc, int d, IntUnaryOperator colors, String[] featureLabels) {

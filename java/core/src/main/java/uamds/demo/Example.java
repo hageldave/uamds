@@ -5,11 +5,11 @@ import java.util.ArrayList;
 
 import uamds.UAMDS;
 import uamds.datasets.StudentGrades;
-import uamds.optimization.ejml.MatCalcEJML;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.ejml.MatCalcEJML;
+import hageldave.optisled.generic.numerics.MatCalc;
+import hageldave.utils.Ref;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
-import uamds.other.Ref;
 
 /**
  * This example demonstrates how to perform UAMDS on a data set consisting

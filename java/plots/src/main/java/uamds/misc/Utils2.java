@@ -28,7 +28,7 @@ import hageldave.jplotter.interaction.kml.CoordSysViewSelector;
 import hageldave.jplotter.pdf.PDFUtils;
 import hageldave.jplotter.renderers.CoordSysRenderer;
 import hageldave.jplotter.svg.SVGUtils;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.generic.numerics.MatCalc;
 
 public class Utils2 {
 

@@ -10,11 +10,11 @@ import hageldave.jplotter.interaction.kml.CoordSysPanning;
 import hageldave.jplotter.interaction.kml.CoordSysScrollZoom;
 import hageldave.jplotter.renderables.Lines;
 import uamds.misc.Utils2;
-import uamds.optimization.generic.numerics.MatCalc;
+import hageldave.optisled.generic.numerics.MatCalc;
 import uamds.other.Utils;
 import uamds.other.NRV;
 import uamds.other.NRVSet;
-import uamds.other.Ref;
+import hageldave.utils.Ref;
 
 public class DistributionTravel<M> extends DistributionPlot<M> {
 

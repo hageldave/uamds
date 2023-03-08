@@ -5,7 +5,7 @@
 
 	<groupId>com.github.hageldave.uamds</groupId>
 	<artifactId>uamds-core</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.4-SNAPSHOT</version>
 
 	<name>UAMDS</name>
 	<url>https://github.com/hageldave/uamds</url>
@@ -56,20 +56,17 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.ejml</groupId>
-			<artifactId>ejml-all</artifactId>
-			<version>0.41</version>
+			<groupId>com.github.hageldave.optisled</groupId>
+			<artifactId>optisled</artifactId>
+			<version>0.0.2</version>
 		</dependency>
 	</dependencies>
 
 	<profiles>
 		<profile>
-			<!-- 
-			Profile for building a standalone jar that contains 
-			dependencies, sources, and is also executable.
-			Build with: mvn compile -P standalonejar assembly:single
-			(will be located in 'target')
-			-->
+			<!-- Profile for building a standalone jar that contains dependencies, 
+				sources, and is also executable. Build with: mvn compile -P standalonejar 
+				assembly:single (will be located in 'target') -->
 			<id>standalonejar</id>
 			<build>
 				<plugins>
@@ -169,7 +166,7 @@
 			</build>
 		</profile>
 	</profiles>
-	
+
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>
