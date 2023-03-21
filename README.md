@@ -7,9 +7,14 @@ This implementation supports datasets of normally distributed random vectors, wh
 
 UAMDS computes an optimal affine transformation (linear projection & translation) $\Phi_i(p) = M_i~p + d_i$ for each random vector in the dataset, that transforms the random vector to low-dimensional space, $X_i = \Phi_i(P_i)$. Thus, each low-dimensional random vector will also be normally distributed, $X_i \sim N(M_i ~ \mu_i + d_i, ~ M_i ~ \Sigma_i ~ M_i^\top )$ with projection matrix $M_i$ and translation $d_i$.
 
+---
+<picture align="center"><image src="https://github.com/hageldave/uamds/blob/main/images/teaser.svg"/></picture>
+
 
 ## Java Implementation (Reference Implementation)
-The java project consists of a library which is served as a [maven](https://maven.apache.org/what-is-maven.html) artifact.   
+The project consists of a java library which uses [maven](https://maven.apache.org/what-is-maven.html) as dependency management and build system. 
+The library is also served as a maven artifact through the central repository.
+
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.hageldave.uamds/uamds-core.svg)](https://central.sonatype.com/namespace/com.github.hageldave.uamds)
 
 ### Compile & Run Demo
@@ -23,13 +28,13 @@ mvn clean compile exec:java -D"exec.mainClass"="uamds.demo.Example"
 ```
 
 ### Integrate in your own project
-The maven artifact for version 0.0.3 has been deployed to the central maven repository. So you can simply use it with maven out of the box (maven will download it) using the following dependency.
+The maven artifact has been deployed to the [central maven repository](https://repo.maven.apache.org/maven2/com/github/hageldave/uamds/uamds-core/) from version 0.0.3 onwards. So you can simply use it with maven out of the box using the following dependency (maven will download it).
 
 ```xml
 <dependency>
 	<groupId>com.github.hageldave.uamds</groupId>
 	<artifactId>uamds-core</artifactId>
-	<version>0.0.3</version>
+	<version>0.1.0</version>
 </dependency>
 ```
 ---
@@ -132,7 +137,7 @@ M[][] init3 = Initialization.initWithoutVariance(mc, dataset);
 
 
 
-### Replicability Stamp: Instructions to reproduce the teaser figure of the paper from scratch
+## Replicability Stamp: Instructions to reproduce the teaser figure of the paper from scratch
 These are the instructions to replicate the teaser figure (Figure 1) of the paper. Please note that this is the only reproducible figure.
 Other figures were created with non-deterministic code (using random intializations) that yields slightly different results on each run and is not part of this repository.
 
