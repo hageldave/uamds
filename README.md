@@ -116,7 +116,7 @@ There are more things that can be tweaked and retrieved, such as the number of i
   Ref<double[][]> stress = new Ref<>();
   Ref<double[][][]> stressDetailed = new Ref<>();
   uamds.setStochasticGDEnabled(true);
-  uamds.gd.maxLineSearchIter = 10;
+  uamds.gd.getHyperparams().set(GradientDescent.PARAM_MAX_LINESEARCH_ITER, 10);
   uamds.calculateProjection(dataset, affineTransf.get(), affineTransf, nIterations, stress, stressDetailed);
 }
 ```
