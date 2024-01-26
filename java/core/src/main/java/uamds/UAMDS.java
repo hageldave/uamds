@@ -5,7 +5,9 @@ import static uamds.other.Utils.sq;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import hageldave.optisled.ejml.MatCalcEJML;
 import hageldave.optisled.generic.numerics.MatCalc;
 import hageldave.optisled.generic.problem.ScalarFN;
 import hageldave.optisled.generic.problem.VectorFN;
@@ -154,7 +156,7 @@ public class UAMDS<M> {
 		
 		double[][] loss_ij = new double[data.size()][data.size()];
 		double[][][] loss_kij = new double[3][data.size()][data.size()];
-		double stress = stressFromProjecton(pre, B, c, hiDim, loDim, loss_ij, loss_kij);
+		double stress = stressFromProjecton(mc, pre, B, c, hiDim, loDim, loss_ij, loss_kij);
 		if(loss!=null)
 			loss.set(loss_ij);
 		if(stressComps!=null) {
@@ -192,12 +194,12 @@ public class UAMDS<M> {
 		/* create the optimization problem (loss function for stress minimization).
 		 * This needs objects x, f(x), f'(x)
 		 */
-		M x = vectorizeAffineTransforms(B, c, null);
+		M x = vectorizeAffineTransforms(mc, B, c, null);
 		ScalarFN<M> fx = new ScalarFN<M>() {
 			@Override
 			public double evaluate(M vec) {
-				extractAffineTransforms(B, c, vec);
-				return stressFromProjecton(pre, B, c, hiDim, loDim, null, null);
+				extractAffineTransforms(mc, B, c, vec);
+				return stressFromProjecton(mc, pre, B, c, hiDim, loDim, null, null);
 			}
 		};
 		VectorFN<M> dfxa = new VectorFN<M>() {
@@ -213,9 +215,9 @@ public class UAMDS<M> {
 			
 			@Override
 			public M evaluate(M vec) {
-				extractAffineTransforms(B, c, vec);
-				M[][] dc_dB = gradientFromProjection(pre, B, c, hiDim, loDim);
-				return vectorizeAffineTransforms(dc_dB[1], dc_dB[0], grad);
+				extractAffineTransforms(mc, B, c, vec);
+				M[][] dc_dB = gradientFromProjection(mc, pre, B, c, hiDim, loDim);
+				return vectorizeAffineTransforms(mc, dc_dB[1], dc_dB[0], grad);
 			}
 		};
 		
@@ -247,7 +249,7 @@ public class UAMDS<M> {
 			System.out.println("loss on termination:"+gd.getLoss());
 		
 		// solution extraction
-		extractAffineTransforms(B, c, xMin);		
+		extractAffineTransforms(mc, B, c, xMin);		
 		M[][] result = mc.matArray(2, 0);
 		result[0] = B;
 		result[1] = c;
@@ -282,13 +284,13 @@ public class UAMDS<M> {
 		/* create the optimization problem (loss function for stress minimization).
 		 * This needs objects x, f(x), f'(x)
 		 */
-		M x = vectorizeAffineTransforms(B, c, null);
+		M x = vectorizeAffineTransforms(mc, B, c, null);
 		ScalarFN<M> fx = new ScalarFN<M>() {
 			@Override
 			public double evaluate(M vec) {
-				extractAffineTransforms(B, c, vec);
+				extractAffineTransforms(mc, B, c, vec);
 				int i=currentRandom.get()%n;
-				return stressFromProjection_i(i, pre, B, c, hiDim, loDim, null, null);
+				return stressFromProjection_i(mc, i, pre, B, c, hiDim, loDim, null, null);
 			}
 		};
 		VectorFN<M> dfxa = new VectorFN<M>() {
@@ -315,15 +317,15 @@ public class UAMDS<M> {
 			
 			@Override
 			public M evaluate(M vec) {
-				extractAffineTransforms(B, c, vec);
+				extractAffineTransforms(mc, B, c, vec);
 				
 				int i=currentRandom.get()%n;
-				M[][] dc_dB_i = gradientFromProjection_i(i, pre, B, c, hiDim, loDim);
+				M[][] dc_dB_i = gradientFromProjection_i(mc, i, pre, B, c, hiDim, loDim);
 				M[] dc = ntimes(n, cZero), dB = ntimes(n, BZero);
 				dc[i] = dc_dB_i[0][0];
 				dB[i] = dc_dB_i[1][0];
 				
-				return vectorizeAffineTransforms(dB, dc, grad);
+				return vectorizeAffineTransforms(mc, dB, dc, grad);
 			}
 		};
 		
@@ -335,7 +337,7 @@ public class UAMDS<M> {
 			System.out.println("loss on termination:"+gd.getLoss());
 		
 		// solution extraction
-		extractAffineTransforms(B, c, xMin);		
+		extractAffineTransforms(mc, B, c, xMin);		
 		M[][] result = mc.matArray(2, 0);
 		result[0] = B;
 		result[1] = c;
@@ -343,7 +345,7 @@ public class UAMDS<M> {
 	}
 	
 	
-	protected M vectorizeAffineTransforms(M[] Bs, M[] cs, M target) {
+	static <M> M vectorizeAffineTransforms(MatCalc<M> mc, M[] Bs, M[] cs, M target) {
 		int hiDim = mc.numCols(Bs[0]);
 		int loDim = mc.numRows(Bs[0]);
 		int n = Bs.length;
@@ -365,7 +367,7 @@ public class UAMDS<M> {
 		return target;
 	}
 	
-	protected void extractAffineTransforms(M[] Bs, M[] cs, M source) {
+	static <M> void extractAffineTransforms(MatCalc<M> mc, M[] Bs, M[] cs, M source) {
 		int hiDim = mc.numCols(Bs[0]);
 		int loDim = mc.numRows(Bs[0]);
 		int n = Bs.length;
@@ -385,26 +387,26 @@ public class UAMDS<M> {
 	}
 
 
-	protected double stressFromProjecton(PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
+	public static <M> double stressFromProjecton(MatCalc<M> mc, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
 		double sum = 0;
 		for(int i=0; i<B.length; i++) {
 			for(int j=i; j<B.length; j++) {
-				double loss = stressFromProjecton_ij(i, j, pre, B, c, hiDim, loDim, loss_ij, loss_kij);
+				double loss = stressFromProjecton_ij(mc, i, j, pre, B, c, hiDim, loDim, loss_ij, loss_kij);
 				sum += loss;
 			}
 		}
 		return sum;
 	}
 	
-	protected double stressFromProjection_i(int i, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
+	public static <M> double stressFromProjection_i(MatCalc<M> mc, int i, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
 		double sum=0;
 		for(int j=0; j<B.length; j++) {
-			sum += j<i ? stressFromProjecton_ij(j, i, pre, B, c, hiDim, loDim, loss_ij, loss_kij) : stressFromProjecton_ij(i, j, pre, B, c, hiDim, loDim, loss_ij, loss_kij);
+			sum += j<i ? stressFromProjecton_ij(mc, j, i, pre, B, c, hiDim, loDim, loss_ij, loss_kij) : stressFromProjecton_ij(mc, i, j, pre, B, c, hiDim, loDim, loss_ij, loss_kij);
 		}
 		return sum;
 	}
 	
-	protected double stressFromProjecton_ij(int i, int j, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
+	public static <M> double stressFromProjecton_ij(MatCalc<M> mc, int i, int j, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim, double[][] loss_ij, double[][][] loss_kij) {
 		M Si = pre.S[i];
 		M Ssqrti = pre.Ssqrt[i];
 		M Bi = B[i];
@@ -486,7 +488,7 @@ public class UAMDS<M> {
 		return loss;
 	}
 	
-	protected M[][] gradientFromProjection(PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){
+	public static <M> M[][] gradientFromProjection(MatCalc<M> mc, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){
 		// variables for derivatives w.r.t. c and B
 		M[] dc = mc.matArray(c.length);
 		M[] dB = mc.matArray(B.length);
@@ -497,7 +499,7 @@ public class UAMDS<M> {
 		
 		for(int i=0; i<B.length; i++) {
 			for(int j=i; j<B.length; j++) {
-				M[][] g = gradientFromProjection_ij(i, j, pre, B, c, hiDim, loDim);
+				M[][] g = gradientFromProjection_ij(mc, i, j, pre, B, c, hiDim, loDim);
 				mc.add_inp(dc[i], g[0][0]);
 				mc.add_inp(dc[j], g[0][1]);
 				mc.add_inp(dB[i], g[1][0]);
@@ -510,16 +512,16 @@ public class UAMDS<M> {
 		return result;
 	}
 	
-	protected M[][] gradientFromProjection_i(int i, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){
+	static <M> M[][] gradientFromProjection_i(MatCalc<M> mc, int i, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){
 		M dBi = mc.zeros(loDim, hiDim);
 		M dci = mc.zeros(loDim);
 		for(int j=0; j<B.length; j++) {
 			if(j < i) {
-				M[][] g = gradientFromProjection_ij(j, i, pre, B, c, hiDim, loDim);
+				M[][] g = gradientFromProjection_ij(mc, j, i, pre, B, c, hiDim, loDim);
 				mc.add_inp(dci, g[0][1]);
 				mc.add_inp(dBi, g[1][1]);
 			} else {
-				M[][] g = gradientFromProjection_ij(i, j, pre, B, c, hiDim, loDim);
+				M[][] g = gradientFromProjection_ij(mc, i, j, pre, B, c, hiDim, loDim);
 				mc.add_inp(dci, g[0][0]);
 				mc.add_inp(dBi, g[1][0]);
 			}
@@ -530,7 +532,7 @@ public class UAMDS<M> {
 		return result;
 	}
 	
-	protected M[][] gradientFromProjection_ij(int i, int j, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){	
+	public static <M> M[][] gradientFromProjection_ij(MatCalc<M> mc, int i, int j, PreCalculatedValues<M> pre, M[] B, M[] c, int hiDim, int loDim){	
 		M mui = pre.mu[i];
 		M Si = pre.S[i];
 		M Bi = B[i];
@@ -548,8 +550,6 @@ public class UAMDS<M> {
 		M dcj = mc.zeros(loDim);
 
 		M cisubcj = mc.sub(ci,cj);
-		//TODO: precompute mu diff
-		M muisubmuj = mc.sub(mui, muj);
 
 
 		//double term1;
@@ -606,7 +606,7 @@ public class UAMDS<M> {
 
 		double term3;
 		{
-			double norm1 = mc.norm2(muisubmuj);
+			double norm1 = pre.norm2muisubmuj[i][j]; // mc.norm2(muisubmuj);
 			double norm2 = mc.norm2(cisubcj);
 			double part1 = norm1-norm2;
 
@@ -706,14 +706,6 @@ public class UAMDS<M> {
 		}
 		
 	}
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	
