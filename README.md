@@ -11,6 +11,9 @@ UAMDS computes an optimal affine transformation (linear projection & translation
 <picture align="center"><image src="https://github.com/hageldave/uamds/blob/main/images/teaser.svg"/></picture>
 
 
+## Python Implementation (Port)
+A Python port of the algorithm can be found at https://github.com/hageldave/UAMDS-python and as part of https://github.com/hageldave/uadapy. Both projects work but are immature, i.e., lack documentation and are not yet deployed as a package.
+
 ## Java Implementation (Reference Implementation)
 The project consists of a java library which uses [maven](https://maven.apache.org/what-is-maven.html) as dependency management and build system. 
 The library is also served as a maven artifact through the central repository.
